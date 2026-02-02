@@ -11,7 +11,8 @@
         rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="shop/static/style.css" rel="stylesheet">
-     <link rel="icon" type="image/x-icon" href="img/icono.jpeg">
+    <link rel="icon" type="image/x-icon" href="img/icono.jpeg">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 
     <style>
         *,
@@ -1176,13 +1177,13 @@
             </div>
             <div id="product-grid">
                 <div data-category="completas" class="product-card overflow-hidden flex-col ">
-                    <div class="stock-tag available">10 Disponibles</div>
+                    <div class="stock-tag available">10 Perfiles</div>
                     <img src="img/Disney cuenta.jpg"
-                        alt="Disney Premium pantalla" class="w-full h-40 object-cover">
+                        alt="disneypremium" class="w-full h-40 object-cover">
 
                     <div class="p-4 flex flex-col flex-grow">
                         <div class="text-center flex-grow">
-                            <h3 class="font-bold text-lg product-name">Disney Pantalla</h3>
+                            <h3 class="font-bold text-lg product-name">Disney Premium</h3>
                             <p style="color: var(--neon-blue);" class="text-lg font-semibold product-price mt-1">
                                 $&nbsp;3,50</p>
                         </div>
@@ -1246,7 +1247,7 @@
 
                             <a href="https://wa.me/+593999293698?text=Hola,%20estoy%20interesado%20en%20adquirir%201%20Perfil%20de%20Max%20Standar"
                                 class="buy-link p-2 rounded-full transition-transform duration-200 hover:scale-125"
-                                style="color: var(--subtext-color);" aria-label="Comprar IPTV Sneo Plus">
+                                style="color: var(--subtext-color);" aria-label="Comprar Max Standar">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
                                     viewBox="0 0 16 16">
                                     <path
@@ -1260,7 +1261,7 @@
                 </div>
 
                 <div data-category="completas" class="product-card overflow-hidden flex-col ">
-                    <div class="stock-tag available">8 Disponibles</div>
+                    <div class="stock-tag available">32 Perfiles</div>
                     <figure>
                     <img src="img/Prime.jpeg"
                         alt="Prime video" class="w-full h-40 object-cover">
@@ -1268,16 +1269,16 @@
 
                     <div class="p-4 flex flex-col flex-grow">
                         <div class="text-center flex-grow">
-                            <h3 class="font-bold text-lg product-name">Prime Video Pantalla</h3>
+                            <h3 class="font-bold text-lg product-name">Prime Video</h3>
                             <p style="color: var(--neon-blue);" class="text-lg font-semibold product-price mt-1">
                                 $&nbsp;1,00</p>
                                 
                         </div>
                         <div class="flex justify-end mt-2">
 
-                            <a href="https://wa.me/+593999293698?text=Hola,%20estoy%20interesado%20en%20el%20producto:%20Tele%20Latino%20Premium"
+                            <a href="https://wa.me/+593999293698?text=Hola,%20estoy%20interesado%20en%20Adquirir%201%20perfil%20de%20Prime%20Video"
                                 class="buy-link p-2 rounded-full transition-transform duration-200 hover:scale-125"
-                                style="color: var(--subtext-color);" aria-label="Comprar Tele Latino Premium">
+                                style="color: var(--subtext-color);" aria-label="Comprar Prime Video">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
                                     viewBox="0 0 16 16">
                                     <path
@@ -1543,14 +1544,40 @@
                 </div>
         </main>
                 
-    <footer class="mt-12 md:mt-24 border-t border-white/5 pt-10 pb-24 md:pb-12">
-        <div class="container mx-auto px-4 text-center">
-            <div class="flex justify-center gap-8 mb-8 opacity-60 hover:opacity-100 transition-opacity"
-                id="social-links-container"></div>
-            <p class="text-[10px] md:text-xs text-gray-600 font-light tracking-wide">© 2026 refillsec. Todos los
-                derechos reservados.</p>
-        </div> 
-    </footer>
+    <footer class="refill-footer">
+    <div class="footer-container">
+        
+        <div class="footer-section brand">
+            <img src="tu-logo.png" alt="Refillsec Logo" class="logo-footer">
+            <p>Reduciendo huellas, recargando vida.</p>
+        </div>
+
+        <div class="footer-section">
+            <h4>Navegación</h4>
+            <ul>
+                <li><a href="#">Inicio</a></li>
+                <li><a href="#">Productos</a></li>
+                <li><a href="#">Contacto</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-section">
+            <h4>Síguenos</h4>
+            <div class="social-box">
+                <a href="https://instagram.com/tu_usuario" target="_blank" class="social-btn instagram">
+                    <i class="fab fa-instagram"></i>
+                </a>
+                <a href="https://tiktok.com/@tu_usuario" target="_blank" class="social-btn tiktok">
+                    <i class="fab fa-tiktok"></i>
+                </a>
+            </div>
+        </div>
+
+    </div>
+    <div class="footer-credits">
+        <p>&copy; 2024 Refillsec.com - Guayaquil, Ecuador</p>
+    </div>
+</footer>
     <a href="https://wa.me/+593999293698?text=Hola,%20estoy%20interesado%20en%20sus%20productos."
         class="fixed bottom-6 right-6 bg-[#25D366] text-white p-3 md:p-4 rounded-full shadow-lg hover:scale-110 transition-transform z-50"
         id="whatsapp-fab"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
@@ -1588,5 +1615,6 @@
 
 
 </html>
+
 
 
