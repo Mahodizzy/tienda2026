@@ -424,4 +424,115 @@ header p {
     overflow-y: auto; 
     border: 1px solid rgba(255,255,255,0.1);
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+
+}
+
+/* Configuración General del Footer */
+.refill-footer {
+    background-color: #ffffff;
+    color: #333;
+    padding: 60px 20px 20px;
+    border-top: 1px solid #eee;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.footer-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 30px;
+}
+
+.footer-section {
+    flex: 1;
+    min-width: 200px;
+}
+
+/* Estilo del Logo */
+.logo-footer {
+    max-width: 180px;
+    height: auto;
+    margin-bottom: 15px;
+    display: block;
+}
+
+.footer-section h4 {
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+    color: #000;
+    font-weight: 700;
+}
+
+.footer-section ul {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-section ul li a {
+    text-decoration: none;
+    color: #666;
+    transition: 0.3s;
+}
+
+.footer-section ul li a:hover {
+    color: #27ae60; /* Color verde eco al pasar el mouse */
+}
+
+/* --- BOTONES DE REDES SOCIALES --- */
+.social-box {
+    display: flex;
+    gap: 15px;
+}
+
+.social-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 45px;
+    height: 45px;
+    border-radius: 12px;
+    font-size: 24px;
+    color: white; /* El icono siempre blanco */
+    text-decoration: none;
+    transition: transform 0.3s ease;
+}
+
+.social-btn:hover {
+    transform: scale(1.1);
+}
+
+/* Color Original Instagram (Degradado) */
+.social-btn.instagram {
+    background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285ae0 90%);
+}
+
+/* Color Original TikTok (Negro sólido) */
+.social-btn.tiktok {
+    background-color: #000000;
+}
+
+/* Créditos Finales */
+.footer-credits {
+    text-align: center;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #f2f2f2;
+    font-size: 0.85rem;
+    color: #aaa;
+}
+
+/* Adaptación para móviles */
+@media (max-width: 768px) {
+    .footer-container {
+        flex-direction: column;
+        text-align: center;
+    }
+    .social-box {
+        justify-content: center;
+    }
+    .logo-footer {
+        margin: 0 auto 15px;
+    }
 }
