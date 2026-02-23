@@ -330,28 +330,70 @@ header p {
 .footer-column ul li a:hover { color: #f497c1; }
 
 /* --- REDES SOCIALES --- */
-.social-links { display: flex; gap: 15px; align-items: center; }
-
-.telegram-link { color: #26A5E4; font-weight: bold; text-decoration: none; transition: transform 0.3s; }
-
-.telegram-link i { font-size: 2rem; margin-right: 10px; }
-
-.icono-instagram-color {
-    font-size: 2rem; margin-right: 10px;
-    background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    display: inline-block;
+/* Contenedor principal de las redes */
+.social-links {
+    display: flex;
+    justify-content: center; /* Centra los iconos en la página */
+    align-items: center;
+    gap: 15px; /* Espacio uniforme entre ellos */
+    padding: 20px 0;
 }
 
-.tiktok-link { color: #ffffff; font-weight: bold; text-decoration: none; transition: all 0.3s; }
+/* Estilo para TODOS los enlaces de redes sociales */
+.social-links a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    /* EL TRUCO: Definir un ancho y alto fijo */
+    width: 45px; 
+    height: 45px;
+    
+    background-color: #1a1a1a; /* Fondo oscuro */
+    border: 1px solid #333;    /* Borde sutil */
+    border-radius: 12px;       /* Bordes redondeados elegantes */
+    
+    text-decoration: none;
+    transition: all 0.3s ease;
+    position: relative;
+}
 
-.tiktok-link:hover { color: #fe2c55; text-shadow: 2px 2px #25f4ee; }
+/* Estilo para los ICONOS dentro de los enlaces */
+.social-links a i {
+    font-size: 22px; /* Tamaño del dibujo del icono */
+    color: #fff;     /* Color blanco por defecto */
+    transition: 0.3s;
+}
 
-.whatsapp-link { color: #25D366; font-weight: bold; text-decoration: none; transition: all 0.3s; }
+/* --- EFECTOS HOVER (Al pasar el mouse) --- */
 
-.whatsapp-link:hover { color: #128C7E; transform: scale(1.1); }
+/* Telegram */
+.social-links a.telegram-link:hover {
+    border-color: #26A5E4;
+    box-shadow: 0 0 15px rgba(38, 165, 228, 0.4);
+}
+.social-links a.telegram-link:hover i { color: #26A5E4; }
 
+/* Instagram */
+.social-links a.instagram-link:hover {
+    border-color: #E1306C;
+    box-shadow: 0 0 15px rgba(225, 48, 108, 0.4);
+}
+.social-links a.instagram-link:hover i { color: #E1306C; }
+
+/* TikTok */
+.social-links a.tiktok-link:hover {
+    border-color: #00f2ea;
+    box-shadow: 0 0 15px rgba(0, 242, 234, 0.4);
+}
+.social-links a.tiktok-link:hover i { color: #00f2ea; }
+
+/* WhatsApp */
+.social-links a.whatsapp-link:hover {
+    border-color: #25D366;
+    box-shadow: 0 0 15px rgba(37, 211, 102, 0.4);
+}
+.social-links a.whatsapp-link:hover i { color: #25D366; }
 /* --- BOTÓN FLOTANTE CARRITO --- */
 .btn-flotante {
     position: fixed; bottom: 30px; right: 30px;
@@ -493,4 +535,5 @@ header p {
   box-shadow: 0 0 20px #00ffc8;
   transform: translateY(-2px);
 }
+
 
