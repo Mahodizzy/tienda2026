@@ -415,3 +415,82 @@ header p {
     .btn-flotante { padding: 15px; }
     .icono-carrito { margin-right: 0; }
 }
+
+/* Contenedor principal */
+.modal {
+  display: none; 
+  position: fixed;
+  z-index: 9999; /* Siempre por encima de todo */
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8); 
+  backdrop-filter: blur(8px); /* Efecto de desenfoque elegante */
+}
+
+/* Caja del anuncio */
+.modal-contenido {
+  background: #121212;
+  margin: 15vh auto;
+  padding: 40px 20px;
+  border: 2px solid #00ffc8; /* Borde neón verde/cian */
+  border-radius: 25px;
+  width: 85%;
+  max-width: 400px;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 0 30px rgba(0, 255, 200, 0.3);
+  color: white;
+  font-family: 'Poppins', sans-serif;
+  animation: aparecer 0.4s ease-out;
+}
+
+/* Animación de entrada */
+@keyframes aparecer {
+  from { transform: scale(0.7); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.icono-alerta {
+  font-size: 40px;
+  margin-bottom: 10px;
+}
+
+.modal-header h2 {
+  color: #00ffc8;
+  margin: 0 0 15px 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Botón de cerrar (X) */
+.cerrar {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  font-size: 30px;
+  color: #555;
+  cursor: pointer;
+}
+
+/* Botón de acción */
+#btnEntendido {
+  background: #00ffc8;
+  color: #000;
+  border: none;
+  padding: 12px 40px;
+  font-size: 14px;
+  font-weight: 800;
+  border-radius: 50px;
+  cursor: pointer;
+  margin-top: 25px;
+  transition: 0.3s;
+}
+
+#btnEntendido:hover {
+  background: #fff;
+  box-shadow: 0 0 20px #00ffc8;
+  transform: translateY(-2px);
+}
+
