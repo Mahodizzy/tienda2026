@@ -1,264 +1,164 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Referencias Únicas al DOM
-    const elements = {
+    // 1. Caché de Elementos y Estado
+    const state = {
+        currentWhatsappLink: "",
+        cartCount: 0
+    };
+
+    const dom = {
         productGrid: document.getElementById('product-grid'),
         searchInput: document.getElementById('search-input'),
         filterButtons: document.querySelectorAll('.filter-btn'),
         loader: document.getElementById('loader-overlay'),
-        modal: document.getElementById('confirmation-modal'), 
-        modalProductName: document.getElementById('modal-product-name'),
-        modalProductPrice: document.getElementById('modal-product-price'),
-        modalProductImage: document.getElementById('modal-product-image'),
-        confirmButton: document.getElementById('confirm-button'),
-        cancelButton: document.getElementById('cancel-button'),
-        body: document.body,
-        themeToggle: document.getElementById('theme-toggle')
+        modal: document.getElementById('confirmation-modal'),
+        modalContent: {
+            name: document.getElementById('modal-product-name'),
+            price: document.getElementById('modal-product-price'),
+            img: document.getElementById('modal-product-image'),
+        },
+        cartCounter: document.querySelector('.contador-carrito'),
+        body: document.body
     };
 
-    // --- FUERZA EL CIERRE INMEDIATO AL CARGAR ---
-    if (elements.modal) {
-        elements.modal.classList.remove('show');
-        elements.modal.style.display = 'none';
-    }
+    // --- 2. Gestión de Productos (Búsqueda y Filtro) ---
+    // Pre-calculamos las referencias de las cards para no buscarlas en cada tecla
+    const productCards = Array.from(document.querySelectorAll('.product-card')).map(card => ({
+        element: card,
+        name: card.querySelector('.product-name').textContent.toLowerCase(),
+        category: card.dataset.category
+    }));
 
-    let currentWhatsappLink = "";
+    const updateVisibility = () => {
+        const query = dom.searchInput.value.toLowerCase();
+        const activeFilter = document.querySelector('.filter-btn.active')?.dataset.filter || 'all';
 
-    // --- 2. Lógica de Búsqueda y Filtros ---
-    const filterProducts = () => {
-        const searchTerm = elements.searchInput.value.toLowerCase();
-        const activeFilterBtn = document.querySelector('.filter-btn.active');
-        const filterValue = activeFilterBtn ? activeFilterBtn.getAttribute('data-filter') : 'all';
-        
-        const productCards = document.querySelectorAll('.product-card');
-
-        productCards.forEach(card => {
-            const productName = card.querySelector('.product-name').textContent.toLowerCase();
-            const category = card.getAttribute('data-category');
-            
-            const matchesSearch = productName.includes(searchTerm);
-            const matchesFilter = (filterValue === 'all' || category === filterValue);
-
-            card.style.display = (matchesSearch && matchesFilter) ? "flex" : "none";
+        productCards.forEach(({ element, name, category }) => {
+            const matchesSearch = name.includes(query);
+            const matchesFilter = activeFilter === 'all' || category === activeFilter;
+            element.style.display = (matchesSearch && matchesFilter) ? "flex" : "none";
         });
     };
 
-    if (elements.searchInput) {
-        elements.searchInput.addEventListener('input', filterProducts);
-    }
-
-    elements.filterButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            elements.filterButtons.forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
-            filterProducts();
-        });
-    });
-
-    // --- 3. Funciones del Modal ---
-    const showModal = (name, price, img, link) => {
-        currentWhatsappLink = link;
-        elements.modalProductName.textContent = name;
-        elements.modalProductPrice.textContent = price;
-        elements.modalProductImage.src = img;
-
-        elements.modal.style.display = 'flex';
-        setTimeout(() => {
-            elements.modal.classList.add('show');
-        }, 10);
+    // --- 3. Controladores del Modal ---
+    const toggleModal = (show, data = {}) => {
+        if (show) {
+            state.currentWhatsappLink = data.link;
+            dom.modalContent.name.textContent = data.name;
+            dom.modalContent.price.textContent = data.price;
+            dom.modalContent.img.src = data.img;
+            dom.modal.style.display = 'flex';
+            setTimeout(() => dom.modal.classList.add('show'), 10);
+        } else {
+            dom.modal.classList.remove('show');
+            setTimeout(() => dom.modal.style.display = 'none', 300);
+        }
     };
 
-    const hideModal = () => {
-        elements.modal.classList.remove('show');
-        setTimeout(() => {
-            if (!elements.modal.classList.contains('show')) {
-                elements.modal.style.display = 'none';
+    // --- 4. Delegación de Eventos (Un solo listener para todo) ---
+    document.addEventListener('click', (e) => {
+        // Filtros
+        const filterBtn = e.target.closest('.filter-btn');
+        if (filterBtn) {
+            dom.filterButtons.forEach(btn => btn.classList.remove('active'));
+            filterBtn.classList.add('active');
+            updateVisibility();
+        }
+
+        // Botón Comprar (Abrir Modal)
+        const buyLink = e.target.closest('.buy-link');
+        if (buyLink) {
+            e.preventDefault();
+            const card = buyLink.closest('.product-card');
+            toggleModal(true, {
+                name: card.querySelector('.product-name').textContent.trim(),
+                price: card.querySelector('.product-price').textContent.trim(),
+                img: card.querySelector('img').src,
+                link: buyLink.href
+            });
+        }
+
+        // Añadir al Carrito
+        const addCartBtn = e.target.closest('.btn-add-cart');
+        if (addCartBtn) {
+            state.cartCount++;
+            if (dom.cartCounter) {
+                dom.cartCounter.textContent = state.cartCount;
+                dom.cartCounter.animate([
+                    { transform: 'scale(1)' },
+                    { transform: 'scale(1.4)' },
+                    { transform: 'scale(1)' }
+                ], { duration: 200 });
             }
-        }, 300);
-    };
+        }
 
-    // --- 4. Eventos de Clic ---
-    if (elements.productGrid) {
-        elements.productGrid.addEventListener('click', (e) => {
-            const buyLink = e.target.closest('.buy-link');
-            if (buyLink) {
-                e.preventDefault();
-                const card = buyLink.closest('.product-card');
-                
-                showModal(
-                    card.querySelector('.product-name').textContent.trim(),
-                    card.querySelector('.product-price').textContent.trim(),
-                    card.querySelector('img').src,
-                    buyLink.href
-                );
-            }
-        });
-    }
+        // Cerrar Modal (Botones o fuera del contenido)
+        if (e.target.closest('#cancel-button') || e.target === dom.modal) {
+            toggleModal(false);
+        }
 
-    if (elements.cancelButton) elements.cancelButton.addEventListener('click', hideModal);
-    
-    if (elements.confirmButton) {
-        elements.confirmButton.addEventListener('click', () => {
-            window.open(currentWhatsappLink, '_blank');
-            hideModal();
-        });
-    }
-
-    if (elements.modal) {
-        const handleOutsideClick = (e) => {
-            if (e.target === elements.modal) hideModal();
-        };
-        elements.modal.addEventListener('click', handleOutsideClick);
-        elements.modal.addEventListener('touchstart', handleOutsideClick, { passive: true });
-    }
-
-    // --- 5. Loader y Tema ---
-    window.addEventListener('load', () => {
-        if (elements.loader) {
-            setTimeout(() => {
-                elements.loader.classList.add('loader-hidden');
-            }, 500);
+        // Confirmar WhatsApp
+        if (e.target.closest('#confirm-button')) {
+            window.open(state.currentWhatsappLink, '_blank');
+            toggleModal(false);
         }
     });
 
-    if (localStorage.getItem('theme') === 'light') elements.body.classList.add('light-mode');
-    
-    if (elements.themeToggle) {
-        elements.themeToggle.addEventListener('click', () => {
-            elements.body.classList.toggle('light-mode');
-            localStorage.setItem('theme', elements.body.classList.contains('light-mode') ? 'light' : 'dark');
-        });
-    }
-     // --- SISTEMA DE PARTÍCULAS INTERACTIVAS (NUEVO) ---
-    const initParticles = () => {
+    dom.searchInput?.addEventListener('input', updateVisibility);
+
+    // --- 5. Loader y Partículas ---
+    window.addEventListener('load', () => {
+        if (dom.loader) {
+            dom.loader.classList.add('loader-hidden');
+            setTimeout(() => dom.loader.remove(), 600); // Eliminamos del DOM para ahorrar recursos
+        }
+        initParticles();
+    });
+
+    function initParticles() {
         const canvas = document.getElementById('particles-canvas');
         if (!canvas) return;
-
         const ctx = canvas.getContext('2d');
-        let particlesArray;
-
-        // Ajustar tamaño al cargar
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-
-        // Posición del Mouse / Toque
-        const mouse = {
-            x: null,
-            y: null,
-            radius: 150 // Radio de interacción
+        let particlesArray = [];
+        
+        const setSize = () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
         };
-
-        // Eventos de Mouse (PC)
-        window.addEventListener('mousemove', (event) => {
-            mouse.x = event.x;
-            mouse.y = event.y;
-        });
-
-        // Eventos de Touch (Móvil)
-        window.addEventListener('touchmove', (event) => {
-            mouse.x = event.touches[0].clientX;
-            mouse.y = event.touches[0].clientY;
-        }, { passive: true });
-
-        window.addEventListener('touchstart', (event) => {
-            mouse.x = event.touches[0].clientX;
-            mouse.y = event.touches[0].clientY;
-        }, { passive: true });
-
-        window.addEventListener('touchend', () => {
-            mouse.x = null;
-            mouse.y = null;
-        });
-
-        window.addEventListener('mouseout', () => {
-            mouse.x = null;
-            mouse.y = null;
-        });
+        setSize();
+        window.addEventListener('resize', setSize);
 
         class Particle {
-            constructor(x, y, directionX, directionY, size, color) {
-                this.x = x;
-                this.y = y;
-                this.directionX = directionX;
-                this.directionY = directionY;
-                this.size = size;
-                this.color = color;
-                this.baseX = x;
-                this.baseY = y;
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 1;
+                this.speedX = Math.random() * 1 - 0.5;
+                this.speedY = Math.random() * 1 - 0.5;
             }
-
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x > canvas.width || this.x < 0) this.speedX *= -1;
+                if (this.y > canvas.height || this.y < 0) this.speedY *= -1;
+            }
             draw() {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
                 ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
-                ctx.fillStyle = this.color;
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
                 ctx.fill();
             }
-
-            update() {
-                let dx = mouse.x - this.x;
-                let dy = mouse.y - this.y;
-                let distance = Math.sqrt(dx * dx + dy * dy);
-
-
-                if (mouse.x != null && distance < mouse.radius) {
-                    const forceDirectionX = dx / distance;
-                    const forceDirectionY = dy / distance;
-                    const force = (mouse.radius - distance) / mouse.radius;
-                    const directionX = forceDirectionX * force * 3;
-                    const directionY = forceDirectionY * force * 3;
-
-                    this.x += directionX;
-                    this.y += directionY;
-                } else {
-                    if (this.x !== this.baseX) {
-                        this.x += this.directionX;
-                        this.y += this.directionY;
-                    } else {
-                        this.x += this.directionX;
-                        this.y += this.directionY;
-                    }
-                }
-
-                if (this.x > canvas.width || this.x < 0) this.directionX = -this.directionX;
-                if (this.y > canvas.height || this.y < 0) this.directionY = -this.directionY;
-
-                this.draw();
-            }
         }
 
-        function init() {
-            particlesArray = [];
-            let numberOfParticles = (canvas.height * canvas.width) / 9000;
+        const init = () => {
+            particlesArray = Array.from({ length: 50 }, () => new Particle());
+        };
 
-            for (let i = 0; i < numberOfParticles; i++) {
-                let size = (Math.random() * 2) + 1;
-                let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
-                let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
-                let directionX = (Math.random() * 1) - 0.5;
-                let directionY = (Math.random() * 1) - 0.5;
-                let color = `rgba(255, 255, 255, ${Math.random() * 0.3 + 0.1})`;
-
-                particlesArray.push(new Particle(x, y, directionX, directionY, size, color));
-            }
-        }
-
-        function animate() {
+        const animate = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particlesArray.forEach(p => { p.update(); p.draw(); });
             requestAnimationFrame(animate);
-            ctx.clearRect(0, 0, innerWidth, innerHeight);
-            for (let i = 0; i < particlesArray.length; i++) {
-                particlesArray[i].update();
-            }
-        }
-
-        window.addEventListener('resize', () => {
-            canvas.width = innerWidth;
-            canvas.height = innerHeight;
-            init();
-        });
-
+        };
         init();
         animate();
-    };
-
-    initParticles();
-
+    }
 });
