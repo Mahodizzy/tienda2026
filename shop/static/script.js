@@ -162,3 +162,32 @@ document.addEventListener('DOMContentLoaded', () => {
         animate();
     }
 });
+
+window.onload = function() {
+    var modal = document.getElementById("miAnuncio");
+    var span = document.getElementsByClassName("cerrar")[0];
+    var btn = document.getElementById("btnEntendido");
+
+    // Mostrar siempre al cargar la página
+    // Añadimos un pequeño retraso de 500ms para que sea más fluido
+    setTimeout(function() {
+        modal.style.display = "block";
+    }, 500);
+
+    // Funciones para cerrar
+    span.onclick = function() {
+        modal.style.display = "none";
+    }
+
+    btn.onclick = function() {
+        modal.style.display = "none";
+    }
+
+    // Cerrar si hacen clic fuera de la caja
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+}
+
