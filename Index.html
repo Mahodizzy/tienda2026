@@ -1,558 +1,419 @@
 <!DOCTYPE html>
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Refills EC - Tienda Digital</title>
+    
     <link href="https://fonts.googleapis.com" rel="preconnect">
     <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin="">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&amp;family=Syne:wght@700;800&amp;display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="shop/static/style.css" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="img/icono.jpeg">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<canvas id="particles-canvas" style="position: fixed; top: 0; left: 0; z-index: -1; pointer-events: none;"></canvas>
-<div>
-    <div id="plasmo-shadow-container" style="z-index: 2147483647; position: absolute;">
-        <div id="plasmo-mount-container" data-v-app="" style="display: flex; position: relative; top: 0px; left: 0px;">
-        </div>
-    </div>
-</div>
 
-<body data-uid="oJtIwjjysjNYbp927BKr7xcwYsw1" monica-id="ofpnmcalabcbjgholdjcjblkibolbppb" monica-version="9.0.2">
+    <!-- Firebase Compat -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyBRTyPjBFVBtZS0cO-CDiWTlTfYx7_8w8s",
+        authDomain: "refills-ec.firebaseapp.com",
+        projectId: "refills-ec",
+        storageBucket: "refills-ec.firebasestorage.app",
+        messagingSenderId: "498663677908",
+        appId: "1:498663677908:web:f76cb508fbb77425774041",
+        measurementId: "G-YKQ64J9ZJL"
+      };
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+      const auth = firebase.auth();
+    </script>
+    <script src="shop/static/script.js" defer></script>
+</head>
+
+<body>
+    <canvas id="particles-canvas"></canvas>
     <div class="loader-overlay loader-hidden" id="loader-overlay">
         <div class="loader-spinner"></div>
     </div>
+
+    <!-- Menú Usuario (Ahora flota a la derecha sin ocupar espacio) -->
+    <div id="user-menu">
+        <button id="btn-login-open">
+            <i class="fa-solid fa-user"></i> <span id="user-name-display">Ingresar</span>
+        </button>
+    </div>
+
     <div class="main-wrapper">
-        <header class="flex flex-col items-center text-center space-y-2">
-    <h1 class="tracking-tight flex items-center justify-center gap-3" id="store-name">
-        Refills EC
-        <img src="img/logoo.png" alt="Logo Refills EC" class="w-20 h-20 object-contain">
-    </h1>
-    <p class="opacity-80 font-light px-4 md:px-0">Tu centro de suscripciones digitales</p>
-    <div class="hidden" id="theme-toggle"></div>
-</header>
+        <header>
+            <h1 id="store-name">
+    Refills <span class="text-orange">EC</span>
+    <img src="img/logoo.png" alt="Logo" class="w-20 h-20 md:w-28 md:h-28 object-contain inline-block align-middle ml-2">
+</h1>
+            <p class="header-subtitle">Tu centro de suscripciones digitales</p>
+        </header>
+
         <div class="controls-section">
-            <div class="search-container" id="search-container"><span class="search-icon material-icons"
-                    id="search-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                        stroke-width="2" stroke="currentColor" style="width:20px;height:20px;">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"></path>
-                    </svg></span><input type="search" class="search-input" id="search-input" placeholder="Buscar..."
-                    autocomplete="off" data-listener-added_65626c38="true" data-listener-added_1aa627aa="true"></div>
+            <div class="search-container">
+                <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+                <input type="search" class="search-input" id="search-input" placeholder="Buscar..." autocomplete="off">
+            </div>
             <div class="divider"></div>
             <div id="filter-container">
                 <button class="filter-btn active" data-filter="all">Todo</button>
-                <button class="filter-btn " data-filter="pantallas">Pantallas</button>
-                <button class="filter-btn " data-filter="completas">Cuentas</button>
-                <button class="filter-btn " data-filter="combos">Combos</button>
-                <button class="filter-btn " data-filter="redes">Redes</button>
+                <button class="filter-btn" data-filter="pantallas">Pantallas</button>
+                <button class="filter-btn" data-filter="completas">Cuentas</button>
+                <button class="filter-btn" data-filter="redes">Redes</button>
             </div>
         </div>
+
         <main>
-            <div class="flex justify-center mb-6 md:mb-10">
-                <h2 class="text-xs md:text-sm uppercase tracking-[0.2em] text-gray-500 font-semibold">Productos</h2>
-            </div>
             <div id="product-grid">
-                <div data-category="completas" class="product-card overflow-hidden flex-col ">
+                <!-- 1 -->
+                <div data-category="completas" class="product-card">
                     <div class="stock-tag available">10 Disponibles</div>
-                    <img src="img/Disney cuenta.jpg"
-                        alt="Disney Premium pantalla" class="w-full h-40 object-cover">
-
+                    <img src="img/Disney cuenta.jpg" alt="Disney" class="w-full h-40 object-cover">
                     <div class="p-4 flex flex-col flex-grow">
-                        <div class="text-center flex-grow">
-                            <h3 class="font-bold text-lg product-name">Disney Pantalla</h3>
-                            <p style="color: var(--neon-blue);" class="text-lg font-semibold product-price mt-1">
-                                $&nbsp;3,50</p>
-                        </div>
-                        <div class="flex justify-end mt-2">
-
-                            <a href="https://wa.me/+593999293698?text=Hola,%20estoy%20interesado%20en%20el%20producto:%20Disney%20Premium%20Perfil."
-                                class="buy-link p-2 rounded-full transition-transform duration-200 hover:scale-125"
-                                style="color: var(--subtext-color);" aria-label="Comprar Disney Premium Perfiles.">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
-                                    viewBox="0 0 16 16">
-                                    <path
-                                        d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l1.313 7h8.17l1.313-7H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z">
-                                    </path>
-                                </svg>
-                            </a>
-
-                        </div>
+                        <h3 class="product-name">Disney Pantalla</h3>
+                        <p class="product-price">$ 3,50</p>
+                        <div class="flex justify-end mt-auto"><a href="#" class="buy-link"><i class="fa-solid fa-cart-plus"></i></a></div>
                     </div>
                 </div>
-
-                <div data-category="completas" class="product-card overflow-hidden flex-col ">
+                <!-- 2 -->
+                <div data-category="completas" class="product-card">
                     <div class="stock-tag available">10 Disponibles</div>
-                    <img src="img/Netflix.jpeg"
-                        alt="IPTV Qq Digital " class="w-full h-40 object-cover">
-
+                    <img src="img/Netflix.jpeg" alt="Netflix" class="w-full h-40 object-cover">
                     <div class="p-4 flex flex-col flex-grow">
-                        <div class="text-center flex-grow">
-                            <h3 class="font-bold text-lg product-name">Netflix Pantalla </h3>
-                            <p style="color: var(--neon-blue);" class="text-lg font-semibold product-price mt-1">
-                                $&nbsp;$3,75</p>
-                        </div>
-                        <div class="flex justify-end mt-2">
-
-                            <a href="https://wa.me/+593999293698?text=Hola,%20estoy%20interesado%20en%20el%20producto:%20IPTV%20Qq%20Digital%20"
-                                class="buy-link p-2 rounded-full transition-transform duration-200 hover:scale-125"
-                                style="color: var(--subtext-color);" aria-label="Comprar IPTV Qq Digital ">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
-                                    viewBox="0 0 16 16">
-                                    <path
-                                        d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l1.313 7h8.17l1.313-7H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z">
-                                    </path>
-                                </svg>
-                            </a>
-
-                        </div>
+                        <h3 class="product-name">Netflix Pantalla</h3>
+                        <p class="product-price">$ 3,50</p>
+                        <div class="flex justify-end mt-auto"><a href="#" class="buy-link"><i class="fa-solid fa-cart-plus"></i></a></div>
                     </div>
                 </div>
-
-                <div data-category="completas" class="product-card overflow-hidden flex-col ">
+                <!-- 3 -->
+                <div data-category="completas" class="product-card">
                     <div class="stock-tag available">10 Disponibles</div>
-                    <img src="img/Max.jpeg"
-                        alt="IPTV Sneo Plus" class="w-full h-40 object-cover">
-
+                    <img src="img/Max.jpeg" alt="Max" class="w-full h-40 object-cover">
                     <div class="p-4 flex flex-col flex-grow">
-                        <div class="text-center flex-grow">
-                            <h3 class="font-bold text-lg product-name">Max Standar Pantalla</h3>
-                            <p style="color: var(--neon-blue);" class="text-lg font-semibold product-price mt-1">
-                                $&nbsp;2,00</p>
-                        </div>
-                        <div class="flex justify-end mt-2">
-
-                            <a href="https://wa.me/+593999293698?text=Hola,%20estoy%20interesado%20en%20el%20producto:%20IPTV%20Sneo%20Plus"
-                                class="buy-link p-2 rounded-full transition-transform duration-200 hover:scale-125"
-                                style="color: var(--subtext-color);" aria-label="Comprar IPTV Sneo Plus">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
-                                    viewBox="0 0 16 16">
-                                    <path
-                                        d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l1.313 7h8.17l1.313-7H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z">
-                                    </path>
-                                </svg>
-                            </a>
-
-                        </div>
+                        <h3 class="product-name">Max Standard Pantalla</h3>
+                        <p class="product-price">$ 2,00</p>
+                        <div class="flex justify-end mt-auto"><a href="#" class="buy-link"><i class="fa-solid fa-cart-plus"></i></a></div>
                     </div>
                 </div>
-
-                <div data-category="completas" class="product-card overflow-hidden flex-col ">
+                <!-- 4 -->
+                <div data-category="completas" class="product-card">
                     <div class="stock-tag available">8 Disponibles</div>
-                    <figure>
-                    <img src="img/Prime.jpeg"
-                        alt="Prime video" class="w-full h-40 object-cover">
-                        </figure>
-
+                    <img src="img/Prime.jpeg" alt="Prime" class="w-full h-40 object-cover">
                     <div class="p-4 flex flex-col flex-grow">
-                        <div class="text-center flex-grow">
-                            <h3 class="font-bold text-lg product-name">Prime Video Pantalla</h3>
-                            <p style="color: var(--neon-blue);" class="text-lg font-semibold product-price mt-1">
-                                $&nbsp;2,50</p>
-                                
-                        </div>
-                        <div class="flex justify-end mt-2">
-
-                            <a href="https://wa.me/+593999293698?text=Hola,%20estoy%20interesado%20en%20el%20producto:%20Tele%20Latino%20Premium"
-                                class="buy-link p-2 rounded-full transition-transform duration-200 hover:scale-125"
-                                style="color: var(--subtext-color);" aria-label="Comprar Tele Latino Premium">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
-                                    viewBox="0 0 16 16">
-                                    <path
-                                        d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l1.313 7h8.17l1.313-7H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z">
-                                    </path>
-                                </svg>
-                            </a>
-
-                        </div>
+                        <h3 class="product-name">Prime Video Pantalla</h3>
+                        <p class="product-price">$ 2,50</p>
+                        <div class="flex justify-end mt-auto"><a href="#" class="buy-link"><i class="fa-solid fa-cart-plus"></i></a></div>
                     </div>
                 </div>
-
-                <div data-category="pantallas" class="product-card overflow-hidden flex-col ">
+                <!-- 5 -->
+                <div data-category="pantallas" class="product-card">
                     <div class="stock-tag available">7 Perfiles</div>
-                    <img src="img/Flujo.jpeg"
-                        alt="Netflix perfil con pin" class="w-full h-40 object-cover">
-
+                    <img src="img/Flujo.jpeg" alt="Flujo" class="w-full h-40 object-cover">
                     <div class="p-4 flex flex-col flex-grow">
-                        <div class="text-center flex-grow">
-                            <h3 class="font-bold text-lg product-name">Flujo tv Pantalla</h3>
-                            <p style="color: var(--neon-blue);" class="text-lg font-semibold product-price mt-1">
-                                $&nbsp;3,00</p>
-                        </div>
-                        <div class="flex justify-end mt-2">
-
-                            <a href="https://wa.me/+593999293698?text=Hola,%20estoy%20interesado%20en%20el%20producto:%20Netflix%20perfil%20con%20pin"
-                                class="buy-link p-2 rounded-full transition-transform duration-200 hover:scale-125"
-                                style="color: var(--subtext-color);" aria-label="Comprar Netflix perfil con pin">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
-                                    viewBox="0 0 16 16">
-                                    <path
-                                        d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l1.313 7h8.17l1.313-7H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z">
-                                    </path>
-                                </svg>
-                            </a>
-
-                        </div>
+                        <h3 class="product-name">Flujo tv Pantalla</h3>
+                        <p class="product-price">$ 3,00</p>
+                        <div class="flex justify-end mt-auto"><a href="#" class="buy-link"><i class="fa-solid fa-cart-plus"></i></a></div>
                     </div>
                 </div>
-
-                <div data-category="pantallas" class="product-card overflow-hidden flex-col ">
+                <!-- 6 -->
+                <div data-category="pantallas" class="product-card">
                     <div class="stock-tag available">7 Perfiles</div>
-                    <img src="img/crunchy.jpeg"
-                        alt="Netflix perfil con pin" class="w-full h-40 object-cover">
-
+                    <img src="img/crunchy.jpeg" alt="Crunchy" class="w-full h-40 object-cover">
                     <div class="p-4 flex flex-col flex-grow">
-                        <div class="text-center flex-grow">
-                            <h3 class="font-bold text-lg product-name">Crunchyroll Pantalla</h3>
-                            <p style="color: var(--neon-blue);" class="text-lg font-semibold product-price mt-1">
-                                $&nbsp;2,00</p>
-                        </div>
-                        <div class="flex justify-end mt-2">
-
-                            <a href="https://wa.me/+593999293698?text=Hola,%20estoy%20interesado%20en%20el%20producto:%20Crunchyroll%20perfil%20un%20mes"
-                                class="buy-link p-2 rounded-full transition-transform duration-200 hover:scale-125"
-                                style="color: var(--subtext-color);" aria-label="Comprar Netflix perfil con pin">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
-                                    viewBox="0 0 16 16">
-                                    <path
-                                        d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l1.313 7h8.17l1.313-7H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z">
-                                    </path>
-                                </svg>
-                            </a>
-
-                        </div>
+                        <h3 class="product-name">Crunchyroll Pantalla</h3>
+                        <p class="product-price">$ 2,00</p>
+                        <div class="flex justify-end mt-auto"><a href="#" class="buy-link"><i class="fa-solid fa-cart-plus"></i></a></div>
                     </div>
                 </div>
-
-                <div data-category="pantallas" class="product-card overflow-hidden flex-col">
-    <div class="stock-tag available">7 Perfiles</div>
-    <img src="img/paramount.jpeg" alt="Paramount+" class="w-full h-40 object-cover">
-
-    <div class="p-4 flex flex-col flex-grow">
-        <div class="text-center flex-grow">
-            <h3 class="font-bold text-lg product-name">Paramount+ Pantalla</h3>
-            <p style="color: var(--neon-blue);" class="text-lg font-semibold product-price mt-1">
-                $ 2,00
-            </p>
-        </div>
-        
-        <div class="flex justify-end mt-2 gap-3">
-            <a href="https://wa.me/+593999293698?text=Hola,%20estoy%20interesado%20en%20el%20producto:%20Paramount"
-               class="buy-link p-2 rounded-full transition-transform duration-200 hover:scale-125"
-               style="color: var(--subtext-color);" aria-label="Comprar ahora">
-                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l1.313 7h8.17l1.313-7H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"></path>
-                </svg>
-            </a>
-        </div>
-    </div>
-</div>
-
-                <div data-category="redes" class="product-card overflow-hidden flex-col ">
+                <!-- 7 -->
+                <div data-category="pantallas" class="product-card">
+                    <div class="stock-tag available">7 Perfiles</div>
+                    <img src="img/paramount.jpeg" alt="Paramount" class="w-full h-40 object-cover">
+                    <div class="p-4 flex flex-col flex-grow">
+                        <h3 class="product-name">Paramount+ Pantalla</h3>
+                        <p class="product-price">$ 2,00</p>
+                        <div class="flex justify-end mt-auto"><a href="#" class="buy-link"><i class="fa-solid fa-cart-plus"></i></a></div>
+                    </div>
+                </div>
+                <!-- 8 -->
+                <div data-category="redes" class="product-card">
                     <div class="stock-tag available">1k-100k</div>
-                    <img src="img/Tk seguidores.jpeg"
-                        alt="Netflix perfil con pin" class="w-full h-40 object-cover">
-
+                    <img src="img/Tk seguidores.jpeg" alt="TikTok" class="w-full h-40 object-cover">
                     <div class="p-4 flex flex-col flex-grow">
-                        <div class="text-center flex-grow">
-                            <h3 class="font-bold text-lg product-name"> 1k Seguidores Tik Tok</h3>
-                            <p style="color: var(--neon-blue);" class="text-lg font-semibold product-price mt-1">
-                                $&nbsp;8,00</p>
-                        </div>
-                        <div class="flex justify-end mt-2">
-
-                            <a href="https://wa.me/+593999293698?text=Hola,%20estoy%20interesado%20en%20el%20producto:%20Crunchyroll%20perfil%20un%20mes"
-                                class="buy-link p-2 rounded-full transition-transform duration-200 hover:scale-125"
-                                style="color: var(--subtext-color);" aria-label="Comprar Netflix perfil con pin">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
-                                    viewBox="0 0 16 16">
-                                    <path
-                                        d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l1.313 7h8.17l1.313-7H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z">
-                                    </path>
-                                </svg>
-                            </a>
-
-                        </div>
+                        <h3 class="product-name">1k Seguidores Tik Tok</h3>
+                        <p class="product-price">$ 8,00</p>
+                        <div class="flex justify-end mt-auto"><a href="#" class="buy-link"><i class="fa-solid fa-cart-plus"></i></a></div>
                     </div>
                 </div>
-
-                <div data-category="redes" class="product-card overflow-hidden flex-col ">
+                <!-- 9 -->
+                <div data-category="redes" class="product-card">
                     <div class="stock-tag available">1k-100k</div>
-                    <img src="img/tk likes.jpeg"
-                        alt="Netflix perfil con pin" class="w-full h-40 object-cover">
-
+                    <img src="img/tk likes.jpeg" alt="Likes" class="w-full h-40 object-cover">
                     <div class="p-4 flex flex-col flex-grow">
-                        <div class="text-center flex-grow">
-                            <h3 class="font-bold text-lg product-name"> 1k Likes Tik Tok</h3>
-                            <p style="color: var(--neon-blue);" class="text-lg font-semibold product-price mt-1">
-                                $&nbsp;3,00</p>
-                        </div>
-                        <div class="flex justify-end mt-2">
-
-                            <a href="https://wa.me/+593999293698?text=Hola,%20estoy%20interesado%20en%20el%20producto:%20Crunchyroll%20perfil%20un%20mes"
-                                class="buy-link p-2 rounded-full transition-transform duration-200 hover:scale-125"
-                                style="color: var(--subtext-color);" aria-label="Comprar Netflix perfil con pin">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
-                                    viewBox="0 0 16 16">
-                                    <path
-                                        d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l1.313 7h8.17l1.313-7H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z">
-                                    </path>
-                                </svg>
-                            </a>
-
-                        </div>
+                        <h3 class="product-name">1k Likes Tik Tok</h3>
+                        <p class="product-price">$ 3,00</p>
+                        <div class="flex justify-end mt-auto"><a href="#" class="buy-link"><i class="fa-solid fa-cart-plus"></i></a></div>
                     </div>
                 </div>
-
-                <div data-category="redes" class="product-card overflow-hidden flex-col ">
+                <!-- 10 -->
+                <div data-category="redes" class="product-card">
                     <div class="stock-tag available">1k-100k</div>
-                    <img src="img/tk vistas.jpeg"
-                        alt="Netflix perfil con pin" class="w-full h-40 object-cover">
-
+                    <img src="img/tk vistas.jpeg" alt="Vistas" class="w-full h-40 object-cover">
                     <div class="p-4 flex flex-col flex-grow">
-                        <div class="text-center flex-grow">
-                            <h3 class="font-bold text-lg product-name"> 1k Vistas Tik Tok</h3>
-                            <p style="color: var(--neon-blue);" class="text-lg font-semibold product-price mt-1">
-                                $&nbsp;3,00</p>
-                        </div>
-                        <div class="flex justify-end mt-2">
-
-                            <a href="https://wa.me/+593999293698?text=Hola,%20estoy%20interesado%20en%20el%20producto:%20Crunchyroll%20perfil%20un%20mes"
-                                class="buy-link p-2 rounded-full transition-transform duration-200 hover:scale-125"
-                                style="color: var(--subtext-color);" aria-label="Comprar Netflix perfil con pin">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
-                                    viewBox="0 0 16 16">
-                                    <path
-                                        d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l1.313 7h8.17l1.313-7H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z">
-                                    </path>
-                                </svg>
-                            </a>
-
-                        </div>
+                        <h3 class="product-name">1k Vistas Tik Tok</h3>
+                        <p class="product-price">$ 3,00</p>
+                        <div class="flex justify-end mt-auto"><a href="#" class="buy-link"><i class="fa-solid fa-cart-plus"></i></a></div>
                     </div>
                 </div>
-
-                <div data-category="pantallas" class="product-card overflow-hidden flex-col ">
+                <!-- 11 -->
+                <div data-category="pantallas" class="product-card">
                     <div class="stock-tag available">7 Perfiles</div>
-                    <img src="img/vix.jpeg"
-                        alt="vix" class="w-full h-40 object-cover">
-
+                    <img src="img/vix.jpeg" alt="Vix" class="w-full h-40 object-cover">
                     <div class="p-4 flex flex-col flex-grow">
-                        <div class="text-center flex-grow">
-                            <h3 class="font-bold text-lg product-name">Vix Pantalla</h3>
-                            <p style="color: var(--neon-blue);" class="text-lg font-semibold product-price mt-1">
-                                $&nbsp;2,00</p>
-                        </div>
-                        <div class="flex justify-end mt-2">
-
-                            <a href="https://wa.me/+593999293698?text=Hola,%20estoy%20interesado%20en%20el%20producto:%20Crunchyroll%20perfil%20un%20mes"
-                                class="buy-link p-2 rounded-full transition-transform duration-200 hover:scale-125"
-                                style="color: var(--subtext-color);" aria-label="Comprar Netflix perfil con pin">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
-                                    viewBox="0 0 16 16">
-                                    <path
-                                        d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l1.313 7h8.17l1.313-7H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z">
-                                    </path>
-                                </svg>
-                            </a>
-
-                        </div>
+                        <h3 class="product-name">Vix Pantalla</h3>
+                        <p class="product-price">$ 2,00</p>
+                        <div class="flex justify-end mt-auto"><a href="#" class="buy-link"><i class="fa-solid fa-cart-plus"></i></a></div>
                     </div>
                 </div>
-
-                <div data-category="pantallas" class="product-card overflow-hidden flex-col ">
+                <!-- 12 -->
+                <div data-category="pantallas" class="product-card">
                     <div class="stock-tag available">7 Perfiles</div>
-                    <img src="img/canva.jpeg"
-                        alt="Netflix perfil con pin" class="w-full h-40 object-cover">
-
+                    <img src="img/canva.jpeg" alt="Canva" class="w-full h-40 object-cover">
                     <div class="p-4 flex flex-col flex-grow">
-                        <div class="text-center flex-grow">
-                            <h3 class="font-bold text-lg product-name">Canva Pro Edu</h3>
-                            <p style="color: var(--neon-blue);" class="text-lg font-semibold product-price mt-1">
-                                $&nbsp;5,00</p>
-                        </div>
-                        <div class="flex justify-end mt-2">
-
-                            <a href="https://wa.me/+593999293698?text=Hola,%20estoy%20interesado%20en%20el%20producto:%20Crunchyroll%20perfil%20un%20mes"
-                                class="buy-link p-2 rounded-full transition-transform duration-200 hover:scale-125"
-                                style="color: var(--subtext-color);" aria-label="Comprar Netflix perfil con pin">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
-                                    viewBox="0 0 16 16">
-                                    <path
-                                        d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l1.313 7h8.17l1.313-7H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z">
-                                    </path>
-                                </svg>
-                            </a>
-
-                        </div>
+                        <h3 class="product-name">Canva Pro Edu</h3>
+                        <p class="product-price">$ 5,00</p>
+                        <div class="flex justify-end mt-auto"><a href="#" class="buy-link"><i class="fa-solid fa-cart-plus"></i></a></div>
                     </div>
                 </div>
-                <div data-category="completas" class="product-card overflow-hidden flex-col ">
+                <!-- 13 -->
+                <div data-category="completas" class="product-card">
                     <div class="stock-tag available">5 Disponibles</div>
-                    <img src="img/oleada.jpeg"
-                        alt="Cuenta Completa" class="w-full h-40 object-cover">
-
+                    <img src="img/oleada.jpeg" alt="Oleada" class="w-full h-40 object-cover">
                     <div class="p-4 flex flex-col flex-grow">
-                        <div class="text-center flex-grow">
-                            <h3 class="font-bold text-lg product-name">Oleada Tv Pantalla</h3>
-                            <p style="color: var(--neon-blue);" class="text-lg font-semibold product-price mt-1">
-                                $&nbsp;3,00</p>
-                        </div>
-                        <div class="flex justify-end mt-2">
-
-                            <a href="https://wa.me/+593999293698?text=Hola,%20estoy%20interesado%20en%20el%20producto:%20Cuenta%20Completa"
-                                class="buy-link p-2 rounded-full transition-transform duration-200 hover:scale-125"
-                                style="color: var(--subtext-color);" aria-label="Comprar Cuenta Completa">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
-                                    viewBox="0 0 16 16">
-                                    <path
-                                        d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l1.313 7h8.17l1.313-7H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z">
-                                    </path>
-                                </svg>
-                            </a>
-
-                        </div>
+                        <h3 class="product-name">Oleada Tv Pantalla</h3>
+                        <p class="product-price">$ 3,00</p>
+                        <div class="flex justify-end mt-auto"><a href="#" class="buy-link"><i class="fa-solid fa-cart-plus"></i></a></div>
                     </div>
                 </div>
+            </div>
         </main>
     </div>
-</div> 
 
-               
+    <!-- Footer Dispositivos -->
+    <footer class="footer-dispositivos">
+        <h2 class="footer-title">Disponible en tus dispositivos favoritos</h2>
+        <div class="container-devices">
+            <div class="device-item">
+                <div class="icon-wrapper">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="4" width="18" height="12" rx="1" /><path d="M2 20h20M7 20l1-4h8l1 4" /></svg>
+                </div>
+                <p>PCs</p>
+            </div>
+            <div class="device-item">
+                <div class="icon-wrapper">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="7" y="2" width="10" height="20" rx="2" /><circle cx="12" cy="18" r="1" /></svg>
+                </div>
+                <p>Celulares y tabletas</p>
+            </div>
+            <div class="device-item">
+                <div class="icon-wrapper">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M6 12h4M8 10v4M15 11h.01M18 13h.01" stroke-linecap="round" /><path d="M18 7H6a4 4 0 0 0-4 4v3a4 4 0 0 0 4 4h12a4 4 0 0 0 4-4v-3a4 4 0 0 0-4-4z" /></svg>
+                </div>
+                <p>Consolas</p>
+            </div>
+            <div class="device-item">
+                <div class="icon-wrapper">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="2" y="3" width="20" height="14" rx="2" /><path d="M8 21h8M12 17v4" /></svg>
+                </div>
+                <p>TV</p>
+            </div>
+        </div>
+        <section class="reviews-section">
+    <div class="titulo-separador"><span>OPINIONES DE CLIENTES</span></div>
+    
+    <!-- La ventana que recorta -->
+    <div class="reviews-carousel-window">
+        <!-- El carril que se mueve -->
+        <div id="reviews-grid" class="reviews-track">
+            <!-- Aquí el JS meterá las 20 tarjetas -->
+        </div>
+    </div>
 
-                
-<footer class="footer-refills">
-    <div class="footer-main-content">
-        <div class="footer-column brand-info">
-            <img src="img/logoo.png" alt="Logo Refills EC" class="footer-logo">
-            <div class="contact-details">
+</section>
+
+
+
+    
+       
+
+       
+
+
+
+
+
+        <div class="social-links-container">
+            <div class="titulo-separador"><span>SIGUENOS EN REDES SOCIALES</span></div>
+            <div class="social-grid">
+                <a href="https://wa.me/593999293698" class="social-card wa" target="_blank"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
+                <a href="#" class="social-card ig"><i class="fa-brands fa-instagram"></i> Instagram</a>
+                <a href="#" class="social-card tk"><i class="fa-brands fa-tiktok"></i> TikTok</a>
+                <a href="#" class="social-card tg"><i class="fa-brands fa-telegram"></i> Telegram</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Refills EC - Creado por MD Web Design</p>
+        </div>
+    </footer>
+
+    <!-- Flotantes -->
+    <a href="javascript:void(0)" class="btn-flotante">
+        <span class="contador-carrito">0</span>
+        <i class="fa-solid fa-cart-shopping"></i>
+        <span class="texto-carrito">Ver Carrito</span>
+    </a>
+
+    <div id="cart-drawer" class="cart-drawer">
+        <div class="cart-header">
+            <h3>Tu Pedido</h3>
+            <button id="close-cart" class="close-btn">&times;</button>
+        </div>
+        <div id="cart-items" class="cart-items-container"></div>
+        <div class="cart-footer">
+            <div class="cart-total"><span>Total:</span> <span id="cart-total-amount">$ 0,00</span></div>
+            <button id="btn-finalize-order" class="btn-whatsapp-final">Proceder con el pago</button>
+        </div>
+    </div>
+    <div id="cart-overlay" class="cart-overlay"></div>
+
+    <!-- Modal Auth 3D Refills EC -->
+<div id="auth-modal" class="modal-overlay" style="display:none;">
+    <div class="auth-3d-perspective">
+        <div class="auth-3d-card" id="auth-card">
             
-                <div class="contact-item">
-                    <span class="icon">✉️</span>
-                    <p>refills.ec@gmail.com</p>
+            <!-- CARA FRONTAL: LOGIN -->
+            <div class="auth-face auth-front">
+                <button class="close-auth" onclick="window.closeAuthModal()">&times;</button>
+                <div class="auth-content">
+                    <img src="img/logoo.png" class="auth-logo" alt="Refills EC">
+                    <h2 class="auth-title">Bienvenido</h2>
+                    
+                    <form id="login-form-3d">
+                        <div class="auth-input-group">
+                            <i class="fa-solid fa-envelope"></i>
+                            <input type="email" id="login-email" placeholder="Correo electrónico" required>
+                        </div>
+                        <div class="auth-input-group">
+                            <i class="fa-solid fa-lock"></i>
+                            <input type="password" id="login-pass" placeholder="Contraseña" required>
+                        </div>
+                        <button type="submit" class="auth-btn-primary">ENTRAR</button>
+                    </form>
+
+                    <div class="auth-divider"><span>o continúa con</span></div>
+
+                    <button class="auth-btn-google" id="google-login-btn">
+                        <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google">
+                        Acceder con Google
+                    </button>
+
+                    <p class="auth-switch">
+                        ¿No tienes cuenta? <a href="javascript:void(0)" onclick="window.flipAuth()">Regístrate aquí</a>
+                    </p>
                 </div>
-                <div class="contact-item">
-                    <span class="icon">📍</span>
-                    <p>Guayaquil - Ecuador</p>
+            </div>
+
+            <!-- CARA TRASERA: REGISTRO -->
+            <div class="auth-face auth-back">
+                <button class="close-auth" onclick="window.closeAuthModal()">&times;</button>
+                <div class="auth-content">
+                    <img src="img/logoo.png" class="auth-logo" alt="Refills EC">
+                    <h2 class="auth-title">Crear Cuenta</h2>
+                    
+                    <form id="register-form-3d">
+                        <div class="auth-input-group">
+                            <i class="fa-solid fa-user"></i>
+                            <input type="text" id="reg-name" placeholder="Nombre completo" required>
+                        </div>
+                        <div class="auth-input-group">
+                            <i class="fa-solid fa-envelope"></i>
+                            <input type="email" id="reg-email" placeholder="Correo electrónico" required>
+                        </div>
+                        <div class="auth-input-group">
+                            <i class="fa-solid fa-lock"></i>
+                            <input type="password" id="reg-pass" placeholder="Contraseña" required>
+                        </div>
+                        <button type="submit" class="auth-btn-primary">REGISTRARSE</button>
+                    </form>
+
+                    <p class="auth-switch">
+                        ¿Ya tienes cuenta? <a href="javascript:void(0)" onclick="window.flipAuth()">Inicia sesión</a>
+                    </p>
                 </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+ 
+
+
+
+
+
+
+
+
+    <!-- Menú Lateral de Usuario (Drawer) -->
+<div id="user-drawer" class="side-drawer left">
+    <div class="drawer-content">
+        <div class="drawer-header-user">
+            <button id="close-user-drawer" class="close-btn-round"><i class="fa-solid fa-xmark"></i></button>
+            <div class="user-profile-info">
+                <div class="avatar-circle">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <h2 id="user-welcome-name">¡Hola, Invitado!</h2>
             </div>
         </div>
 
-        <div class="footer-column">
-            <h3>ENLACES</h3>
-            <ul>
-                <li><a href="#">Inicio</a></li>
-                <li><a href="#">Nosotros</a></li>
-                <li><a href="https://t.me/referenciasrefillsec">Referencias</a></li>
-                <li><a href="#">Contacto</a></li>
-            </ul>
-        </div>
+        <nav class="user-nav">
+            <a href="#" class="nav-item active" id="nav-inicio">
+                <i class="fa-solid fa-house"></i>
+                <span>Inicio</span>
+            </a>
+            <a href="historialclientes.html" class="nav-item" id="nav-historial">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                <span>Historial de Pedidos</span>
+            </a>
+            <a href="https://wa.me/593999293698" target="_blank" class="nav-item">
+                <i class="fa-solid fa-gear"></i>
+                <span>Soporte Técnico</span>
+            </a>
+        </nav>
 
-        <div class="footer-column">
-
-    <h3>REDES SOCIALES</h3>
-
-    <div class="social-links">
-        <a href="https://t.me/refillsecstore" class="telegram-link" target="_blank">
-            <i class="fa-brands fa-telegram"></i>
-        </a>
-        <a href="https://www.instagram.com/refills.ec?igsh=MTIxaThrMGtsZzd6ZQ==" class="instagram-link" target="blank">
-            <i class="fa-brands fa-instagram icono-instagram-color"></i>
-        </a>
-        <a href="https://www.tiktok.com/@refills.ec?is_from_webapp=1&sender_device=pc" class="tiktok-link" target="blank">
-            <i class="fa-brands fa-tiktok"></i>
-        </a>
-        <a href="https://wa.me/+593999293698" class="whatsapp-link" target="blank">
-            <i class="fa-brands fa-whatsapp"></i>
-        </a>
-    </div>
-</div>
-
-        <div class="footer-column">
-            <h3>SUSCRIBETE PARA RECIBIR PROMOCIONES</h3>
-            <form class="newsletter-form">
-                <input type="text" placeholder="Nombre" class="newsletter-input">
-                <input type="email" placeholder="Tu Email" class="newsletter-input">
-                <button type="submit" class="newsletter-btn">SUSCRIBETE</button>
-            </form>
-        </div>
-    </div>
-
-    <div class="footer-copyright">
-        <p>© All rights reserved 2026 refillsec</p>
-    </div>
-</footer>
-
-
-<a href="/carrito" class="btn-flotante">
-    <span class="contador-carrito">3</span>
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icono-carrito">
-        <circle cx="9" cy="21" r="1"></circle>
-        <circle cx="20" cy="21" r="1"></circle>
-        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-    </svg>
-    <span class="texto-carrito">Ver Carrito</span>
-</a>
-
-
-
-
-
-   <div class="modal-overlay" id="confirmation-modal">
-    <div class="modal-content">
-        <img class="w-20 h-20 md:w-28 md:h-28 object-cover rounded-full mx-auto mb-4 md:mb-6 shadow-2xl border-4 border-white/5" 
-             id="modal-product-image" src="" alt="Product">
-        <div>
-            <h3 class="text-xl md:text-2xl text-white mb-1 font-semibold" id="modal-product-name">Cargando...</h3>
-            <p class="text-2xl md:text-3xl font-bold mb-4 md:mb-6" id="modal-product-price" 
-               style="background: linear-gradient(135deg, #c084fc, #ec4899); -webkit-background-clip: text; background-clip: text; color: transparent;">
-               $ 0
-            </p>
-            <p class="mb-6 text-sm text-gray-400 font-light px-2">¿Deseas continuar con la compra de este producto?</p>
-            <div class="flex flex-col gap-3">
-                <button id="confirm-button">Confirmar y chatear</button>
-                <button id="cancel-button">Cancelar</button>
-            </div>
+        <div class="drawer-footer-user">
+            <div class="divider-dashed"></div>
+            <button id="btn-logout-drawer" class="btn-logout">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                Cerrar sesión
+            </button>
         </div>
     </div>
 </div>
-</div>
-    <script src="shop/static/script.js"></script>
-    <div class="" data-v-6275cb=""><!----></div>
-    <div id="wp-extension" data-id="dpadflhmiohjfhhaehelneimpllfbpcg"></div>
-    <div id="monica-content-root" class="monica-widget" style="pointer-events: auto;">
-</div>
-    
-<div id="miAnuncio" class="modal">
-  <div class="modal-contenido">
-    <span class="cerrar">&times;</span>
-    <div class="modal-header">
-       <div class="icono-alerta">🔔</div>
-       <h2>¡Aviso Importante!</h2>
-    </div>
-    <div class="modal-body">
-       <p>Nuestro sitio web se encuentra actualmente en una fase de optimización y desarrollo. Por este motivo, es posible que algunas funciones avanzadas presenten limitaciones temporales. No obstante, el sitio web permanecerá activo para garantizar el acceso continuo a nuestro catálogo de precios. Agradecemos su comprensión mientras trabajamos para ofrecerle una mejor experiencia.</p>
-    </div>
-    <button id="btnEntendido">¡ENTENDIDO!</button>
-  </div>
-</div>
-    
+<div id="user-overlay" class="cart-overlay"></div>
+
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
