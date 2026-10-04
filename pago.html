@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finalizar pedido - Refills EC</title>
+    <meta name="theme-color" content="#050505">
+    <meta name="robots" content="noindex">
+
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="shop/static/style.css" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="img/icono.jpeg">
+</head>
+
+<body class="rf-pagina">
+    <canvas id="particles-canvas"></canvas>
+
+    <header class="rf-topbar">
+        <a href="index.html" class="rf-topbar-marca">
+            <img src="img/logoo.png" alt="">
+            <span>Refills <span class="text-orange">EC</span></span>
+        </a>
+        <div class="rf-topbar-acciones">
+            <a href="index.html" class="rf-topbar-link"><i class="fa-solid fa-arrow-left"></i><span>Seguir comprando</span></a>
+            <button id="btn-login-open" type="button"><i class="fa-solid fa-user"></i> <span id="user-name-display">Ingresar</span></button>
+        </div>
+    </header>
+
+    <main class="rf-contenido">
+        <h1 class="rf-pagina-titulo">Finalizar pedido</h1>
+
+        <div id="rf-vacio" class="rf-panel rf-panel-vacio" hidden>
+            <i class="fa-solid fa-cart-shopping" aria-hidden="true"></i>
+            <p>Tu carrito está vacío.</p>
+            <a href="index.html" class="rf-btn rf-btn-primario">Ver servicios</a>
+        </div>
+
+        <div id="rf-flujo">
+            <section class="rf-panel" aria-labelledby="t-resumen">
+                <h2 class="rf-panel-titulo" id="t-resumen"><span class="rf-num">1</span> Revisa tu pedido</h2>
+                <ul class="rf-resumen-lista" id="rf-resumen-lista"></ul>
+                <div class="rf-resumen-totales" id="rf-resumen-totales"></div>
+                <a href="index.html#carrito" class="rf-link"><i class="fa-solid fa-pen"></i> Editar carrito</a>
+            </section>
+
+            <section class="rf-panel" aria-labelledby="t-metodo">
+                <h2 class="rf-panel-titulo" id="t-metodo"><span class="rf-num">2</span> Elige cómo pagar</h2>
+                <div class="rf-tabs" role="tablist" aria-label="Métodos de pago" id="rf-tabs"></div>
+                <div class="rf-tab-panel" id="panel-transferencia" role="tabpanel">
+                    <p class="rf-ayuda">Toca la tarjeta del banco al que vas a transferir para ver y copiar sus datos.</p>
+                    <div class="rf-bancos" id="rf-bancos"></div>
+                </div>
+                <div class="rf-tab-panel" id="panel-binance" role="tabpanel" hidden>
+                    <p class="rf-ayuda">Toca la tarjeta para ver tu destino en Binance Pay. Envía el monto exacto en USDT.</p>
+                    <div class="rf-bancos" id="rf-binance"></div>
+                </div>
+                <p class="rf-eleccion" id="rf-eleccion" aria-live="polite"></p>
+            </section>
+
+            <section class="rf-panel" aria-labelledby="t-comprobante">
+                <h2 class="rf-panel-titulo" id="t-comprobante"><span class="rf-num">3</span> Sube tu comprobante</h2>
+                <label class="rf-dropzone" id="rf-dropzone">
+                    <input type="file" accept="image/*" id="rf-archivo" class="rf-oculto">
+                    <i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i>
+                    <strong>Toca para subir la captura de tu pago</strong>
+                    <span>Foto o captura de pantalla</span>
+                </label>
+                <div class="rf-preview" id="rf-preview" hidden>
+                    <img id="rf-preview-img" alt="Vista previa de tu comprobante">
+                    <div class="rf-preview-info">
+                        <p id="rf-preview-nombre"></p>
+                        <button type="button" class="rf-btn rf-btn-sec" id="rf-cambiar">Cambiar imagen</button>
+                    </div>
+                </div>
+                <label class="rf-campo">
+                    <span>Tu WhatsApp (opcional, por si necesitamos escribirte)</span>
+                    <input type="tel" id="rf-whatsapp" placeholder="Ej. 0991234567" inputmode="tel" autocomplete="tel" maxlength="20">
+                </label>
+                <button type="button" class="btn-whatsapp-final rf-enviar" id="rf-enviar">
+                    <i class="fa-solid fa-paper-plane"></i> Enviar pedido
+                </button>
+                <p class="rf-nota"><i class="fa-solid fa-lock"></i> Tu comprobante solo lo ve Refills EC para validar tu pago.</p>
+            </section>
+        </div>
+    </main>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js" defer></script>
+    <script src="shop/static/config.js" defer></script>
+    <script src="shop/static/catalogo.js" defer></script>
+    <script src="shop/static/core.js" defer></script>
+    <script src="shop/static/pago.js" defer></script>
+</body>
+</html>
