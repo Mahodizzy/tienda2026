@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Refills EC Panel</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#050505">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" type="image/png" href="icons/favicon-64.png">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Refills Admin">
+
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="admin.css">
+</head>
+
+<body>
+    <!-- Cargando -->
+    <section class="pantalla pantalla-centro" id="p-cargando">
+        <img src="../img/logoo.png" alt="" class="logo-grande pulso">
+        <p class="texto-suave">Abriendo tu panel...</p>
+    </section>
+
+    <!-- Iniciar sesión -->
+    <section class="pantalla pantalla-centro" id="p-login" hidden>
+        <div class="tarjeta-acceso">
+            <img src="../img/logoo.png" alt="Refills EC" class="logo-grande">
+            <h1 class="titulo-acceso">Panel de <span class="degradado">administración</span></h1>
+            <p class="texto-suave">Entra con la cuenta con la que administras tu tienda.</p>
+            <form id="form-login" novalidate>
+                <label class="campo">
+                    <span>Correo</span>
+                    <input type="email" id="login-correo" autocomplete="email" required>
+                </label>
+                <label class="campo">
+                    <span>Contraseña</span>
+                    <input type="password" id="login-clave" autocomplete="current-password" required>
+                </label>
+                <p class="error" id="login-error" role="alert"></p>
+                <button type="submit" class="btn btn-primario btn-ancho">Entrar</button>
+            </form>
+            <div class="separador"><span>o</span></div>
+            <button type="button" class="btn btn-secundario btn-ancho" id="btn-google">
+                <i class="fa-brands fa-google"></i> Entrar con Google
+            </button>
+        </div>
+    </section>
+
+    <!-- Reglas pendientes -->
+    <section class="pantalla pantalla-centro" id="p-reglas" hidden>
+        <div class="tarjeta-acceso">
+            <span class="icono-aviso"><i class="fa-solid fa-shield-halved"></i></span>
+            <h1 class="titulo-acceso">Falta un paso en Firebase</h1>
+            <p class="texto-suave">Publica las reglas nuevas para que tu panel pueda guardar cambios.</p>
+            <ol class="pasos">
+                <li>Abre Firebase → <b>Firestore Database</b> → pestaña <b>Reglas</b>.</li>
+                <li>Borra todo y pega el contenido de <b>firebase/firestore.rules</b> (el de esta versión).</li>
+                <li>Pulsa <b>Publicar</b>, espera un minuto y toca el botón de abajo.</li>
+            </ol>
+            <button type="button" class="btn btn-primario btn-ancho" data-recomprobar>Ya lo hice</button>
+            <button type="button" class="btn btn-texto" data-salir>Cerrar sesión</button>
+        </div>
+    </section>
+
+    <!-- Cuenta sin permiso -->
+    <section class="pantalla pantalla-centro" id="p-no-admin" hidden>
+        <div class="tarjeta-acceso">
+            <span class="icono-aviso"><i class="fa-solid fa-user-lock"></i></span>
+            <h1 class="titulo-acceso">Activa tu cuenta de administrador</h1>
+            <p class="texto-suave">Por seguridad, la primera vez debes darte permiso tú mismo desde Firebase. Solo se hace una vez.</p>
+            <div class="codigo-uid">
+                <span>Tu código</span>
+                <code id="uid-texto"></code>
+                <button type="button" class="btn btn-secundario btn-chico" id="btn-copiar-uid"><i class="fa-regular fa-copy"></i> Copiar</button>
+            </div>
+            <ol class="pasos">
+                <li>Abre Firebase → <b>Firestore Database</b> → pestaña <b>Datos</b>.</li>
+                <li>Toca <b>Iniciar colección</b> (o <b>Agregar colección</b>) y escribe <b>admins</b>.</li>
+                <li>En <b>ID del documento</b>, pega tu código.</li>
+                <li>Agrega un campo: nombre <b>nombre</b>, valor <b>tu nombre</b>. Pulsa <b>Guardar</b>.</li>
+            </ol>
+            <button type="button" class="btn btn-primario btn-ancho" data-recomprobar>Ya lo hice</button>
+            <button type="button" class="btn btn-texto" data-salir>Usar otra cuenta</button>
+        </div>
+    </section>
+
+    <!-- Primera importación -->
+    <section class="pantalla pantalla-centro" id="p-importar" hidden>
+        <div class="tarjeta-acceso">
+            <span class="icono-aviso exito"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
+            <h1 class="titulo-acceso">¡Bienvenido a tu panel!</h1>
+            <p class="texto-suave">Vamos a pasar lo que ya tienes en tu tienda al panel. Solo se hace una vez y no cambia nada de lo que ven tus clientes.</p>
+            <ul class="resumen-importar" id="resumen-importar"></ul>
+            <button type="button" class="btn btn-primario btn-ancho" id="btn-importar"><i class="fa-solid fa-cloud-arrow-up"></i> Importar mi tienda</button>
+        </div>
+    </section>
+
+    <!-- App -->
+    <div class="app" id="app" hidden>
+        <header class="barra-superior">
+            <div class="marca">
+                <img src="../img/logoo.png" alt="">
+                <div>
+                    <strong id="marca-nombre">Refills <span class="naranja">EC</span></strong>
+                    <span>Panel</span>
+                </div>
+            </div>
+            <div class="barra-acciones">
+                <button type="button" class="btn-icono" id="btn-instalar" hidden title="Instalar app"><i class="fa-solid fa-download"></i></button>
+                <a class="btn-icono" href="../index.html" target="_blank" rel="noopener" title="Ver mi tienda"><i class="fa-solid fa-store"></i></a>
+                <button type="button" class="btn-icono" id="btn-menu" title="Mi cuenta" aria-haspopup="true"><i class="fa-solid fa-circle-user"></i></button>
+            </div>
+            <div class="menu-cuenta" id="menu-cuenta" hidden>
+                <p class="menu-correo" id="menu-correo"></p>
+                <button type="button" id="btn-respaldo"><i class="fa-solid fa-file-arrow-down"></i> Descargar copia de seguridad</button>
+                <p class="menu-ayuda" id="ayuda-iphone" hidden><i class="fa-brands fa-apple"></i> Para instalarla en iPhone: en Safari toca Compartir → <b>Agregar a inicio</b>.</p>
+                <button type="button" data-salir><i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión</button>
+            </div>
+        </header>
+
+        <main class="contenido" id="contenido"></main>
+
+        <div class="barra-guardar" id="barra-guardar" hidden>
+            <span>Tienes cambios sin guardar</span>
+            <div>
+                <button type="button" class="btn btn-texto" id="btn-descartar">Descartar</button>
+                <button type="button" class="btn btn-primario" id="btn-guardar-vista">Guardar</button>
+            </div>
+        </div>
+
+        <nav class="navegacion" aria-label="Secciones">
+            <button type="button" data-vista="pedidos" class="activo"><i class="fa-solid fa-receipt"></i><span>Pedidos</span><b class="nav-badge" id="badge-pedidos" hidden>0</b></button>
+            <button type="button" data-vista="clientes"><i class="fa-solid fa-users"></i><span>Clientes</span></button>
+            <button type="button" data-vista="productos" data-tambien="categorias,combos"><i class="fa-solid fa-box-open"></i><span>Productos</span></button>
+            <button type="button" data-vista="ventas"><i class="fa-solid fa-chart-line"></i><span>Ventas</span></button>
+            <button type="button" data-vista="tienda" data-tambien="pagos,ayuda"><i class="fa-solid fa-store"></i><span>Tienda</span></button>
+        </nav>
+    </div>
+
+    <!-- Editor (producto / categoría / combo) -->
+    <div class="hoja-fondo" id="hoja" hidden>
+        <div class="hoja" role="dialog" aria-modal="true" aria-labelledby="hoja-titulo">
+            <header class="hoja-cabecera">
+                <button type="button" class="btn-icono" data-cerrar-hoja aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+                <h2 id="hoja-titulo"></h2>
+                <span class="hueco"></span>
+            </header>
+            <div class="hoja-cuerpo" id="hoja-cuerpo"></div>
+            <footer class="hoja-pie" id="hoja-pie"></footer>
+        </div>
+    </div>
+
+    <div class="avisos" id="avisos" aria-live="polite"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js" defer></script>
+    <script src="../shop/static/config.js" defer></script>
+    <script src="../shop/static/catalogo.js" defer></script>
+    <script src="../shop/static/ayuda-inicial.js" defer></script>
+    <script src="admin.js" defer></script>
+</body>
+</html>

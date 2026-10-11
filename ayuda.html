@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preguntas frecuentes y garantía - Refills EC</title>
+    <meta name="description" content="Cómo comprar, cuánto tarda la entrega, garantía, renovaciones y formas de pago en Refills EC.">
+    <meta name="theme-color" content="#050505">
+
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="shop/static/style.css" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="img/icono.jpeg">
+</head>
+
+<body class="rf-pagina">
+    <canvas id="particles-canvas"></canvas>
+
+    <header class="rf-topbar">
+        <a href="index.html" class="rf-topbar-marca">
+            <img src="img/logoo.png" alt="">
+            <span><span data-nombre>Refills</span> <span class="text-orange" data-nombre-acento>EC</span></span>
+        </a>
+        <div class="rf-topbar-acciones">
+            <a href="index.html" class="rf-topbar-link"><i class="fa-solid fa-store"></i><span>Ir a la tienda</span></a>
+            <button id="btn-login-open" type="button"><i class="fa-solid fa-user"></i> <span id="user-name-display">Ingresar</span></button>
+        </div>
+    </header>
+
+    <main class="rf-contenido">
+        <h1 class="rf-pagina-titulo">¿Cómo te ayudamos?</h1>
+        <nav class="rf-tabs rf-ayuda-tabs" aria-label="Secciones de ayuda">
+            <a class="rf-tab activo" href="#preguntas" data-seccion="preguntas"><i class="fa-solid fa-circle-question" aria-hidden="true"></i> Preguntas frecuentes</a>
+            <a class="rf-tab" href="#garantia" data-seccion="garantia"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Términos y garantía</a>
+        </nav>
+
+        <section class="rf-panel" id="preguntas" aria-labelledby="t-preguntas">
+            <h2 class="rf-panel-titulo" id="t-preguntas"><i class="fa-solid fa-circle-question" aria-hidden="true"></i> Preguntas frecuentes</h2>
+            <div class="rf-faq" id="rf-faq"></div>
+        </section>
+
+        <section class="rf-panel" id="garantia" aria-labelledby="t-garantia">
+            <h2 class="rf-panel-titulo" id="t-garantia"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Términos y garantía</h2>
+            <div class="rf-terminos" id="rf-terminos"></div>
+            <p class="rf-actualizado" id="rf-actualizado" hidden></p>
+        </section>
+
+        <section class="rf-panel rf-ayuda-contacto">
+            <div>
+                <h2 class="rf-panel-titulo">¿No encontraste tu respuesta?</h2>
+                <p class="rf-ayuda">Escríbenos y te ayudamos. Si ya hiciste un pedido, también puedes usar el chat de tu pedido.</p>
+            </div>
+            <a class="rf-btn rf-btn-wa" id="rf-ayuda-wa" href="#" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i> Escribir por WhatsApp</a>
+        </section>
+    </main>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js" defer></script>
+    <script src="shop/static/config.js" defer></script>
+    <script src="shop/static/catalogo.js" defer></script>
+    <script src="shop/static/ayuda-inicial.js" defer></script>
+    <script src="shop/static/core.js" defer></script>
+    <script src="shop/static/ayuda.js" defer></script>
+</body>
+</html>
