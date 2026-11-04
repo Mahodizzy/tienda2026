@@ -24,6 +24,7 @@
      CORREO_REMITENTE        ej.: Refills EC <pedidos@envios.refillsec.com>
      CORREO_RESPUESTA        tu correo para que te respondan (opcional)
      SITIO_URL               dirección de tu tienda, ej.: https://refillsec.com
+     ATAJO_TOKEN             (opcional) clave larga para registrar ventas desde el Atajo del iPhone (secreto)
      DIAS_RECORDATORIO       días antes del vencimiento para avisar (por defecto 2)
      CORREO_APROBADO         "si" para avisar también cuando apruebas el pago
 
@@ -61,6 +62,9 @@ export default {
       if (url.pathname === '/recordatorio' && request.method === 'POST') return cors(await recordatorioManual(request, env));
       if (url.pathname === '/prueba-correo' && request.method === 'POST') return cors(await correoDePrueba(request, env));
       if (url.pathname === '/admin/pedido' && request.method === 'POST') return cors(await accionPanel(request, env));
+      if (url.pathname === '/admin/venta' && request.method === 'POST') return cors(await ventaDesdePanel(request, env));
+      if (url.pathname === '/atajo/productos' && request.method === 'GET') return cors(await atajoProductos(request, env));
+      if (url.pathname === '/atajo/venta' && request.method === 'POST') return cors(await atajoVenta(request, env));
       if (url.pathname === '/revisar') {
         if (url.searchParams.get('clave') !== env.WEBHOOK_SECRET) return new Response('Clave incorrecta', { status: 403 });
         return json(await revisarVencimientos(env));
@@ -88,7 +92,7 @@ function cors(resp) {
   const h = new Headers(resp.headers);
   h.set('Access-Control-Allow-Origin', '*');
   h.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  h.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  h.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   h.set('Access-Control-Max-Age', '86400');
   return new Response(resp.body, { status: resp.status, headers: h });
 }
@@ -104,6 +108,20 @@ async function notificarPedido(request, env) {
   const pedido = await fsGet(env, `pedidos/${id}`);
   if (!pedido || pedido.uid !== usuario.uid) return json({ error: 'Pedido no encontrado' }, 404);
   if (pedido.notificado) return json({ ok: true, repetido: true });
+
+  // Si marcó "primera recarga", revisamos si esta misma cuenta ya había recargado ese juego.
+  const conPromo = (pedido.items || []).filter((it) => it.primeraRecarga);
+  if (conPromo.length) {
+    const previos = (await pedidosDeUsuario(env, pedido.uid, 100).catch(() => [])).filter((o) => o.id !== id && o.estado !== 'rechazado');
+    const repetidos = conPromo.map((it) => {
+      const antes = previos.filter((o) => (o.items || []).some((x) => x.servicioId === it.servicioId));
+      return antes.length ? `${it.servicio}: ya tiene ${antes.length} pedido(s) anterior(es) de este juego` : '';
+    }).filter(Boolean);
+    if (repetidos.length) {
+      pedido.alertaPrimera = repetidos.join('; ');
+      await fsUpdate(env, `pedidos/${id}`, { alertaPrimera: pedido.alertaPrimera }, true).catch(() => {});
+    }
+  }
 
   const comprobante = await fsGet(env, `comprobantes/${id}`);
   const destino = Object.assign({ chat_id: env.TG_CHAT_ID }, env.TG_PEDIDOS_TEMA ? { message_thread_id: Number(env.TG_PEDIDOS_TEMA) } : {});
@@ -138,6 +156,7 @@ function textoPedido(p) {
       lineas.push(`• ${it.nombre}: ${(it.servicios || []).map((s) => `${s.nombre} (${s.plan})`).join(' + ')}${cantidad} — ${dinero(it.subtotal)}`);
     } else {
       lineas.push(`• ${it.servicio}: ${it.plan}${cantidad} — ${dinero(it.subtotal)}`);
+      if (it.primeraRecarga) lineas.push(`   🆕 Marcó PRIMERA RECARGA (precio especial; normal ${dinero((it.precioNormal || it.precioUnit) * (it.cantidad || 1))})`);
       (it.datos || []).forEach((d) => lineas.push(`   ↳ ${d.etiqueta}: ${d.valor}`));
     }
   });
@@ -145,6 +164,7 @@ function textoPedido(p) {
   const metodo = p.metodo ? (p.metodo.destino || p.metodo.tipo) : 'Sin método';
   lineas.push(`💳 ${metodo}`);
   if (p.ahorro > 0) lineas.push(`🏷️ Ahorro por combos: ${dinero(p.ahorro)}`);
+  if (p.alertaPrimera) lineas.push(`⚠️ Revisa la primera recarga → ${p.alertaPrimera}. Si no corresponde, cóbrale la diferencia o rechaza el pedido.`);
   lineas.push(`💰 Total: ${dinero(p.total)}`);
   lineas.push(`📍 Estado: ${ETIQUETAS[p.estado] || ETIQUETAS.en_revision}`);
   lineas.push('');
@@ -436,6 +456,120 @@ function hilo(msg) {
   return msg && msg.is_topic_message && msg.message_thread_id ? { message_thread_id: msg.message_thread_id } : {};
 }
 
+
+/* ---------------- Ventas por WhatsApp (panel y Atajo del iPhone) ---------------- */
+const METODOS_VENTA = ['Efectivo', 'Transferencia', 'Binance', 'Deuna', 'Otro'];
+const planesVendibles = (s) => (s.planes || []).filter((p) => !p.combo && Number.isFinite(Number(p.precio)));
+const etiquetaProducto = (s, p) => `${s.nombre} — ${p.nombre} ($${(Math.round(Number(p.precio) * 100) / 100).toFixed(2)})`;
+const normalizarTelefono = (t) => String(t || '').replace(/[^\d+]/g, '').slice(0, 20);
+const codigoVenta = () => {
+  const letras = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const a = new Uint8Array(6);
+  crypto.getRandomValues(a);
+  return 'RF-' + Array.from(a, (b) => letras[b % letras.length]).join('');
+};
+const idNuevo = () => {
+  const a = new Uint8Array(15);
+  crypto.getRandomValues(a);
+  return Array.from(a, (b) => b.toString(16).padStart(2, '0')).join('');
+};
+function igualesSeguro(a, b) {
+  a = String(a || ''); b = String(b || '');
+  if (!a || a.length !== b.length) return false;
+  let r = 0;
+  for (let i = 0; i < a.length; i++) r |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return r === 0;
+}
+function tokenAtajo(request, env) {
+  if (!env.ATAJO_TOKEN || String(env.ATAJO_TOKEN).length < 16) return { error: 'El Atajo no está configurado: agrega ATAJO_TOKEN (mínimo 16 caracteres) en Cloudflare.', status: 503 };
+  const url = new URL(request.url);
+  const dado = (request.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '') || url.searchParams.get('token') || '';
+  if (!igualesSeguro(dado, env.ATAJO_TOKEN)) return { error: 'Clave del Atajo incorrecta.', status: 403 };
+  return null;
+}
+
+// Crea un pedido ya entregado, marcado como venta por WhatsApp, para que entre en Ventas, Clientes y recordatorios.
+async function registrarVenta(env, c) {
+  const cat = await catalogoTienda(env);
+  const servicios = cat && Array.isArray(cat.servicios) ? cat.servicios : [];
+  let servicio = null; let plan = null;
+  if (c.servicioId && c.planId) {
+    servicio = servicios.find((s) => s.id === c.servicioId) || null;
+    plan = servicio ? (servicio.planes || []).find((p) => p.id === c.planId) || null : null;
+  } else if (c.producto) {
+    for (const s of servicios) {
+      const p = planesVendibles(s).find((x) => etiquetaProducto(s, x) === String(c.producto).trim());
+      if (p) { servicio = s; plan = p; break; }
+    }
+  }
+  const cantidad = Math.max(1, Math.min(50, parseInt(c.cantidad, 10) || 1));
+  const nombreLibre = String(c.nombreProducto || c.producto || '').trim().slice(0, 80);
+  if (!plan && !nombreLibre) return { ok: false, error: 'Elige el producto vendido.' };
+  const totalTxt = String(c.total ?? '').replace(',', '.').trim();
+  let total = totalTxt === '' ? NaN : Number(totalTxt);
+  if (!Number.isFinite(total) && plan) total = Number(plan.precio) * cantidad;
+  if (!Number.isFinite(total) || total <= 0 || total >= 5000) return { ok: false, error: 'Escribe el precio al que vendiste (mayor a 0).' };
+  total = Math.round(total * 100) / 100;
+  let costo = null;
+  const costoTxt = String(c.costo ?? '').replace(',', '.').trim();
+  if (costoTxt !== '' && Number.isFinite(Number(costoTxt)) && Number(costoTxt) >= 0) costo = Math.round(Number(costoTxt) * 100) / 100;
+  else if (plan && typeof plan.costo === 'number') costo = Math.round(plan.costo * cantidad * 100) / 100;
+  const item = {
+    tipo: 'plan', servicioId: servicio ? servicio.id : 'libre', servicio: servicio ? servicio.nombre : nombreLibre,
+    categoria: servicio ? servicio.categoria || '' : '', planId: plan ? plan.id : 'libre', plan: plan ? plan.nombre : '',
+    cantidad, precioUnit: Math.round((total / cantidad) * 100) / 100, subtotal: total,
+    dias: plan && plan.dias ? Number(plan.dias) : null, datos: []
+  };
+  const metodoTxt = String(c.metodo || 'Efectivo').trim().slice(0, 30) || 'Efectivo';
+  const ahora = new Date();
+  const nota = String(c.nota || '').trim().slice(0, 500);
+  const codigo = codigoVenta();
+  const digitos = normalizarTelefono(c.whatsapp).replace(/\D/g, '');
+  const pedido = {
+    // Mismo uid para el mismo número: así sus compras se juntan como un solo cliente.
+    uid: digitos ? `wa-${digitos}` : `wa-${codigo}`, email: '', nombre: String(c.nombre || '').trim().slice(0, 80), whatsapp: normalizarTelefono(c.whatsapp),
+    codigo, items: [item], total, ahorro: 0, metodo: { tipo: 'whatsapp', destino: metodoTxt },
+    estado: 'entregado', origen: 'whatsapp', notificado: true, entrega: nota || 'Venta registrada por WhatsApp',
+    creado: ahora, actualizado: ahora, entregadoEn: ahora
+  };
+  const vence = calcularVence(pedido, ahora);
+  if (vence) pedido.vence = vence;
+  if (costo !== null) pedido.costo = costo;
+  const id = idNuevo();
+  await fsSet(env, `pedidos/${id}`, pedido);
+  const gan = costo !== null ? `\n💵 Ganancia: ${dinero(total - costo)}` : '';
+  const destino = Object.assign({ chat_id: env.TG_CHAT_ID }, env.TG_PEDIDOS_TEMA ? { message_thread_id: Number(env.TG_PEDIDOS_TEMA) } : {});
+  await tg(env, 'sendMessage', Object.assign(destino, {
+    text: recortar(`🟢 Venta por WhatsApp registrada\n🆔 ${pedido.codigo}\n🛒 ${nombreItem(item)}${cantidad > 1 ? ` ×${cantidad}` : ''}\n💰 ${dinero(total)} · ${metodoTxt}${gan}${pedido.nombre ? `\n👤 ${pedido.nombre}` : ''}${pedido.whatsapp ? `\n📱 ${pedido.whatsapp}` : ''}${vence ? `\n⏰ Vence ${fechaEC(vence)}` : ''}`, 4000)
+  })).catch((e) => console.error('Aviso de venta:', e.message));
+  return { ok: true, id, codigo: pedido.codigo, total, costo, ganancia: costo !== null ? Math.round((total - costo) * 100) / 100 : null, vence: vence ? vence.toISOString() : null };
+}
+async function ventaDesdePanel(request, env) {
+  const admin = await verificarAdmin(request, env);
+  if (!admin) return json({ error: 'Solo el administrador puede hacer esto.' }, 403);
+  const c = await request.json().catch(() => ({}));
+  const r = await registrarVenta(env, c);
+  return r.ok ? json(r) : json({ error: r.error }, 400);
+}
+// Atajo del iPhone: lista de productos (una línea cada uno) para "Elegir de la lista".
+async function atajoProductos(request, env) {
+  const mal = tokenAtajo(request, env);
+  if (mal) return json({ error: mal.error }, mal.status);
+  const cat = await catalogoTienda(env);
+  const lineas = [];
+  ((cat && cat.servicios) || []).filter((s) => s.activo !== false).forEach((s) => planesVendibles(s).forEach((p) => lineas.push(etiquetaProducto(s, p))));
+  lineas.push('✏️ Otro producto');
+  return new Response(lineas.join('\n'), { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
+}
+async function atajoVenta(request, env) {
+  const mal = tokenAtajo(request, env);
+  if (mal) return json({ error: mal.error }, mal.status);
+  const c = await request.json().catch(() => ({}));
+  if (String(c.producto || '').startsWith('✏️')) c.producto = '';
+  const r = await registrarVenta(env, c);
+  return r.ok ? json(r) : json({ error: r.error }, 400);
+}
+
 /* ---------------- Vencimientos ---------------- */
 const DIA = 86400000;
 function calcularVence(pedido, entregadoEn) {
@@ -515,15 +649,18 @@ async function plantilla(env, { previa, titulo, saludo, parrafos = [], bloque = 
   const partes = t.nombre.split(' ');
   const acento = partes.length > 1 ? partes.pop() : '';
   const marca = `${escHtml(partes.join(' '))}${acento ? ` <span style="color:#C76E00">${escHtml(acento)}</span>` : ''}`;
+  // La cabecera es una imagen: así el modo oscuro de Gmail no cambia el color del nombre.
+  // Si la imagen no carga, se muestra el texto (alt) con el mismo nombre.
+  const cabecera = base
+    ? `<img src="${escHtml(base)}/img/correo-cabecera.png" width="560" alt="${escHtml(t.nombre)}" style="display:block;border:0;width:100%;max-width:560px;height:auto;color:#ffffff;font-size:22px;font-weight:bold;font-family:Arial,Helvetica,sans-serif">`
+    : `<div style="padding:22px 26px;font-size:22px;font-weight:bold;color:#ffffff;font-family:Arial,Helvetica,sans-serif">${marca}</div>`;
   const wa = t.whatsapp ? `<a href="https://wa.me/${escHtml(t.whatsapp)}" style="color:#7c3aed;text-decoration:none">WhatsApp</a>` : '';
   const html = `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title>${escHtml(titulo)}</title></head>
 <body style="margin:0;padding:0;background:#f4f2f7;font-family:Arial,Helvetica,sans-serif;color:#18181b">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0">${escHtml(previa || titulo)}</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f2f7;padding:24px 12px"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #e9e5ef">
-<tr><td style="background:#0b0910;background-image:linear-gradient(135deg,#1a0f24,#0b0910 60%,#22091a);padding:22px 26px">
-<table role="presentation" cellpadding="0" cellspacing="0"><tr>${logo ? `<td style="padding-right:12px">${logo}</td>` : ''}<td style="font-size:22px;font-weight:bold;color:#ffffff">${marca}</td></tr></table>
-</td></tr>
+<tr><td bgcolor="#0b0910" style="background:#0b0910;padding:0">${cabecera}</td></tr>
 <tr><td style="height:4px;background:#db2777;background-image:linear-gradient(90deg,#c084fc,#ec4899)"></td></tr>
 <tr><td style="padding:28px 26px 8px">
 <h1 style="margin:0 0 14px;font-size:22px;line-height:1.3;color:#18181b">${escHtml(titulo)}</h1>

@@ -499,3 +499,20 @@ body.hay-cambios .fab { display: none; }
 .top-barra { height: 8px; border-radius: 99px; background: rgba(255, 255, 255, .06); overflow: hidden; }
 .top-barra i { display: block; height: 100%; border-radius: 0 4px 4px 0; }
 .renov-nota { font-size: .82rem; }
+
+/* Novedades del catálogo y primera recarga */
+.aviso-novedades { display: flex; align-items: center; gap: .8rem; margin: 0 0 1rem; padding: .85rem 1rem; border-radius: 14px;
+  background: linear-gradient(135deg, rgba(192, 132, 252, .14), rgba(236, 72, 153, .12)); border: 1px solid rgba(236, 72, 153, .4); flex-wrap: wrap; }
+.aviso-novedades > i { font-size: 1.3rem; color: #f9a8d4; }
+.aviso-novedades > div { flex: 1 1 200px; min-width: 0; }
+.aviso-novedades small { display: block; margin-top: .15rem; opacity: .75; line-height: 1.35; }
+.etiqueta-primera { display: inline-block; margin: .3rem 0; padding: .2rem .55rem; border-radius: 8px; font-size: .78rem; font-weight: 600; background: rgba(236, 72, 153, .16); color: #f9a8d4; }
+.aviso-primera { display: flex; gap: .7rem; margin: 0 0 1rem; padding: .85rem 1rem; border-radius: 14px; background: rgba(245, 158, 11, .14); border: 1px solid rgba(245, 158, 11, .5); line-height: 1.4; font-size: .9rem; }
+.aviso-primera > i { color: #fbbf24; font-size: 1.2rem; margin-top: .1rem; }
+
+/* Mensajes rápidos de WhatsApp */
+.wa-rapidos { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .5rem; }
+.wa-rapidos .btn { white-space: normal; text-align: left; }
+
+.fila-campos { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; }
+@media (max-width: 420px) { .fila-campos { grid-template-columns: 1fr 1fr; } .fila-campos .campo:first-child { grid-column: 1 / -1; } }

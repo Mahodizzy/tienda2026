@@ -82,6 +82,10 @@
   const planPorId = (s, id) => (s && Array.isArray(s.planes) ? s.planes.find((p) => p.id === id) : null) || null;
   const planCombo = (s) => (s && Array.isArray(s.planes) ? s.planes.find((p) => p.combo) : null) || null;
   const precioDesde = (s) => Math.min(...s.planes.map((p) => p.precio));
+  // Primera recarga: un plan puede tener "precioPrimera" (menor al normal).
+  const planTienePrimera = (p) => !!(p && Number(p.precioPrimera) > 0 && Number(p.precioPrimera) < Number(p.precio));
+  const servicioTienePrimera = (s) => !!(s && Array.isArray(s.planes) && s.planes.some(planTienePrimera));
+  const TEXTO_PRIMERA = 'Marca la casilla solo si es tu primera recarga con Refills EC: así recibes el precio especial. Si ya recargaste antes con nosotros, paga el precio normal.';
   const elegiblesCombo = () => servicios.filter((s) => planCombo(s));
   const reglaPara = (n) => reglas.find((r) => r.cantidad === n) || null;
   const claveCombo = (ids) => ids.slice().sort().join('+');
@@ -148,16 +152,21 @@
     try { localStorage.setItem(CLAVE_CARRITO, JSON.stringify(c)); } catch (e) { /* almacenamiento lleno */ }
     document.dispatchEvent(new CustomEvent('rf:carrito'));
   }
-  function agregarPlan(servicioId, planId, cantidad = 1, datos = {}) {
+  function agregarPlan(servicioId, planId, cantidad = 1, datos = {}, primera = false) {
     const s = servicioPorId(servicioId);
     const p = planPorId(s, planId);
     if (!p) return null;
     const limpios = datosLimpios(datos);
-    const clave = `p|${servicioId}|${planId}|${JSON.stringify(limpios)}`;
+    const esPrimera = !!primera && planTienePrimera(p);
+    const clave = `p|${servicioId}|${planId}|${JSON.stringify(limpios)}${esPrimera ? '|primera' : ''}`;
     const carrito = leerCarrito();
     const existente = carrito.find((x) => x.clave === clave);
     if (existente) existente.cantidad = Math.min(20, existente.cantidad + cantidad);
-    else carrito.push({ clave, tipo: 'plan', servicio: servicioId, plan: planId, cantidad: Math.min(20, cantidad), datos: limpios });
+    else {
+      const it = { clave, tipo: 'plan', servicio: servicioId, plan: planId, cantidad: Math.min(20, cantidad), datos: limpios };
+      if (esPrimera) it.primera = true;
+      carrito.push(it);
+    }
     guardarCarrito(carrito);
     return { servicio: s, plan: p };
   }
@@ -203,11 +212,14 @@
     const s = servicioPorId(it.servicio);
     const p = planPorId(s, it.plan);
     if (!p) return null;
+    const primera = !!it.primera && planTienePrimera(p);
+    const unit = primera ? redondear(Number(p.precioPrimera)) : p.precio;
     return {
       clave: it.clave, tipo: 'plan', cantidad: it.cantidad,
       titulo: s.nombre, detalle: p.nombre, servicio: s, plan: p,
-      precioUnit: p.precio, normalUnit: p.precio,
-      subtotal: redondear(p.precio * it.cantidad), ahorro: 0,
+      precioUnit: unit, normalUnit: p.precio,
+      subtotal: redondear(unit * it.cantidad), ahorro: 0,
+      primera, ahorroPrimera: primera ? redondear((p.precio - unit) * it.cantidad) : 0,
       datos: it.datos || {}
     };
   }
@@ -215,8 +227,9 @@
     const lineas = carrito.map(lineaDe).filter(Boolean);
     const total = redondear(lineas.reduce((a, l) => a + l.subtotal, 0));
     const ahorro = redondear(lineas.reduce((a, l) => a + l.ahorro, 0));
+    const ahorroPrimera = redondear(lineas.reduce((a, l) => a + (l.ahorroPrimera || 0), 0));
     const unidades = lineas.reduce((a, l) => a + l.cantidad, 0);
-    return { lineas, total, ahorro, normal: redondear(total + ahorro), unidades };
+    return { lineas, total, ahorro, ahorroPrimera, normal: redondear(total + ahorro + ahorroPrimera), unidades };
   }
   function etiquetaCampo(servicio, campoId) {
     const c = (servicio && servicio.campos || []).find((x) => x.id === campoId);
@@ -915,7 +928,7 @@
       get reglas() { return reglas; },
       get minCombo() { return minCombo; },
       get maxCombo() { return maxCombo; },
-      servicioPorId, planPorId, planCombo, precioDesde, categoriasVisibles, elegiblesCombo, precioCombo, ahorroRegla, etiquetaCampo
+      servicioPorId, planPorId, planCombo, precioDesde, planTienePrimera, servicioTienePrimera, TEXTO_PRIMERA, categoriasVisibles, elegiblesCombo, precioCombo, ahorroRegla, etiquetaCampo
     },
     carrito: { leer: leerCarrito, agregarPlan, agregarCombo, cambiarCantidad, quitar: quitarDelCarrito, vaciar: vaciarCarrito, resumen: resumenCarrito, sugerencia: sugerenciaCombo, aplicarSugerencia },
     vista: { portadaHTML, miniaturaHTML, pillEstado, estadoInfo, ESTADOS, estadoServicio, servicioPedido, enlaceRenovar },

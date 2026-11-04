@@ -27,15 +27,18 @@ document.addEventListener('DOMContentLoaded', () => window.RF.listo.then(() => {
       <div class="rf-resumen-texto">
         <strong>${esc(l.titulo)}</strong>
         <span>${esc(l.detalle)}${l.cantidad > 1 ? ` × ${l.cantidad}` : ''}</span>
+        ${l.primera ? '<span class="rf-resumen-dato rf-resumen-primera"><i class="fa-solid fa-gift"></i> Precio de primera recarga</span>' : ''}
         ${datos}
       </div>
-      <div class="rf-resumen-precio">${dinero(l.subtotal)}${l.ahorro > 0 ? `<s>${dinero(l.normalUnit * l.cantidad)}</s>` : ''}</div>
+      <div class="rf-resumen-precio">${dinero(l.subtotal)}${l.ahorro > 0 || l.primera ? `<s>${dinero(l.normalUnit * l.cantidad)}</s>` : ''}</div>
     </li>`;
   }).join('');
   $('#rf-resumen-totales').innerHTML = `
-    ${resumen.ahorro > 0 ? `<div><span>Precio normal</span><span>${dinero(resumen.normal)}</span></div>
-    <div class="rf-verde"><span>Ahorro por combos</span><span>− ${dinero(resumen.ahorro)}</span></div>` : ''}
-    <div class="rf-total"><span>Total a pagar</span><strong>${dinero(resumen.total)}</strong></div>`;
+    ${resumen.ahorro > 0 || resumen.ahorroPrimera > 0 ? `<div><span>Precio normal</span><span>${dinero(resumen.normal)}</span></div>` : ''}
+    ${resumen.ahorro > 0 ? `<div class="rf-verde"><span>Ahorro por combos</span><span>− ${dinero(resumen.ahorro)}</span></div>` : ''}
+    ${resumen.ahorroPrimera > 0 ? `<div class="rf-verde"><span>Descuento por primera recarga</span><span>− ${dinero(resumen.ahorroPrimera)}</span></div>` : ''}
+    <div class="rf-total"><span>Total a pagar</span><strong>${dinero(resumen.total)}</strong></div>
+    ${resumen.ahorroPrimera > 0 ? '<p class="rf-nota-primera"><i class="fa-solid fa-circle-info"></i> Verificamos que sea tu primera recarga con nosotros. Si ya habías recargado antes, te pediremos la diferencia con el precio normal para completar tu pedido.</p>' : ''}`;
 
   /* ---------------- 2. Métodos de pago ---------------- */
   const cuentas = (CONFIG.cuentasBancarias || []).filter((c) => c && c.banco);
@@ -249,10 +252,20 @@ document.addEventListener('DOMContentLoaded', () => window.RF.listo.then(() => {
       tipo: 'plan', servicioId: l.servicio.id, servicio: l.servicio.nombre, categoria: l.servicio.categoria,
       planId: l.plan.id, plan: l.plan.nombre,
       cantidad: l.cantidad, precioUnit: l.precioUnit, subtotal: l.subtotal,
+      ...(l.primera ? { primeraRecarga: true, precioNormal: l.normalUnit } : {}),
       dias: l.plan.dias || null,
       datos: Object.keys(l.datos || {}).map((k) => ({ etiqueta: C.etiquetaCampo(l.servicio, k), valor: l.datos[k] }))
     };
   }
+
+  // WhatsApp obligatorio: Ecuador (09XXXXXXXX) o internacional con código de país.
+  const campoWa = $('#rf-whatsapp');
+  const telefonoValido = (v) => {
+    const d = String(v || '').replace(/\D/g, '');
+    return /^09\d{8}$/.test(d) || /^593\d{9}$/.test(d) || (/^\+/.test(String(v).trim()) && /^\d{8,15}$/.test(d));
+  };
+  try { const g = localStorage.getItem('rf_whatsapp'); if (g && !campoWa.value) campoWa.value = g; } catch (e) { /* sin memoria */ }
+  campoWa.addEventListener('input', () => { campoWa.classList.remove('con-error'); $('#rf-whatsapp-error').hidden = true; });
 
   boton.addEventListener('click', async () => {
     if (enviando) return;
@@ -266,6 +279,14 @@ document.addEventListener('DOMContentLoaded', () => window.RF.listo.then(() => {
       RF.toast('Sube la captura de tu pago para continuar.', { tipo: 'info' });
       $('#rf-dropzone').classList.add('resaltar');
       setTimeout(() => $('#rf-dropzone').classList.remove('resaltar'), 1200);
+      return;
+    }
+    if (!telefonoValido(campoWa.value)) {
+      campoWa.classList.add('con-error');
+      $('#rf-whatsapp-error').hidden = false;
+      campoWa.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      campoWa.focus();
+      RF.toast('Escribe tu número de WhatsApp para continuar.', { tipo: 'info' });
       return;
     }
     if (!RF.sesion.lista) { RF.toast('No hay conexión con el servidor. Recarga la página.', { tipo: 'error' }); return; }
@@ -285,7 +306,8 @@ document.addEventListener('DOMContentLoaded', () => window.RF.listo.then(() => {
       if (!r.lineas.length) throw new Error('carrito-vacio');
       const db = RF.sesion.db;
       const ref = db.collection('pedidos').doc();
-      const whatsapp = ($('#rf-whatsapp').value || '').replace(/[^\d+]/g, '').slice(0, 20);
+      const whatsapp = (campoWa.value || '').replace(/[^\d+]/g, '').slice(0, 20);
+      try { localStorage.setItem('rf_whatsapp', whatsapp); } catch (e) { /* sin memoria */ }
       const base = JSON.parse(JSON.stringify({
         uid: usuario.uid,
         email: usuario.email || '',

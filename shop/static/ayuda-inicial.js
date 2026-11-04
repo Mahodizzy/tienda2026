@@ -38,6 +38,10 @@ window.REFILLS_AYUDA = {
       r: 'Transferencia bancaria y Binance Pay. Los datos aparecen en la página de pago con un botón para copiarlos.'
     },
     {
+      p: '¿Qué es el precio de primera recarga?',
+      r: 'Algunas recargas (como Free Fire) tienen un precio especial para tu primera recarga con nosotros. Al elegir el plan marcas la casilla "Es mi primera recarga". Si no la marcas, pagas el precio normal.'
+    },
+    {
       p: '¿Y si mi servicio deja de funcionar?',
       r: 'Escríbenos por el chat de tu pedido o por WhatsApp y lo revisamos. Mira la sección "Términos y garantía" para saber qué cubre.'
     }
@@ -62,6 +66,10 @@ window.REFILLS_AYUDA = {
     {
       t: 'Reembolsos',
       x: 'Si no podemos entregarte el pedido, te devolvemos el 100% de tu pago. Una vez entregados los datos no hay reembolsos; en su lugar aplica la garantía.'
+    },
+    {
+      t: 'Precio de primera recarga',
+      x: 'El precio especial aplica una sola vez por jugador o cliente y solo si es realmente tu primera recarga con Refills EC. Verificamos cada pedido: si marcaste la casilla y ya habías recargado antes, te pediremos la diferencia con el precio normal antes de entregar.'
     },
     {
       t: 'Recargas y redes sociales',

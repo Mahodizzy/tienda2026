@@ -82,8 +82,8 @@ document.addEventListener('DOMContentLoaded', () => window.RF.listo.then(() => {
     const datos = (it.datos || []).map((d) => `<span class="rf-resumen-dato">${esc(d.etiqueta)}: ${esc(d.valor)}</span>`).join('');
     return `<li class="rf-resumen-item">
       <div class="rf-resumen-media">${media}</div>
-      <div class="rf-resumen-texto"><strong>${esc(it.servicio)}</strong><span>${esc(it.plan)}${it.cantidad > 1 ? ` × ${it.cantidad}` : ''}</span>${datos}</div>
-      <div class="rf-resumen-precio">${dinero(it.subtotal)}</div>
+      <div class="rf-resumen-texto"><strong>${esc(it.servicio)}</strong><span>${esc(it.plan)}${it.cantidad > 1 ? ` × ${it.cantidad}` : ''}</span>${it.primeraRecarga ? '<span class="rf-resumen-dato rf-resumen-primera"><i class="fa-solid fa-gift"></i> Precio de primera recarga</span>' : ''}${datos}</div>
+      <div class="rf-resumen-precio">${dinero(it.subtotal)}${it.primeraRecarga && it.precioNormal > it.precioUnit ? `<s>${dinero(it.precioNormal * it.cantidad)}</s>` : ''}</div>
     </li>`;
   }
 

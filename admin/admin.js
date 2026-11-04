@@ -337,7 +337,14 @@
     $('#menu-correo').textContent = E.usuario.email || '';
     if (!conectada) { conectada = true; conectarApp(); }
     irA(E.vista, true);
+    abrirVentaPorEnlace();
   }
+  function abrirVentaPorEnlace() {
+    if (!/#vender/.test(location.hash)) return;
+    history.replaceState(null, '', location.pathname + location.search);
+    setTimeout(() => { if (E.usuario && E.catalogo) abrirVenta(); }, 300);
+  }
+  window.addEventListener('hashchange', abrirVentaPorEnlace);
   function pintarMarca() {
     $('#marca-nombre').innerHTML = `${esc(E.config.nombreTienda || 'Refills')} <span class="naranja">${esc(E.config.nombreAcento || '')}</span>`;
   }
@@ -513,6 +520,30 @@
     let n = String(numero || '').replace(/\D/g, '');
     if (/^09\d{8}$/.test(n)) n = `593${n.slice(1)}`;
     return /^\d{10,15}$/.test(n) ? n : '';
+  }
+
+  // Mensajes rápidos de WhatsApp: un toque abre el chat del cliente con el texto ya escrito.
+  function plantillasWa(p) {
+    const nombre = String(p.nombre || '').split(' ')[0];
+    const tienda = `${E.config.nombreTienda || 'Refills'} ${E.config.nombreAcento || ''}`.trim();
+    const hola = nombre ? `Hola ${nombre}` : 'Hola';
+    const servicio = (p.items || []).map(nombreItem).join(', ') || 'servicio';
+    const lista = [
+      ['fa-hand', 'Saludo', `${hola}, te saluda ${tienda}. Te escribo por tu pedido ${p.codigo}.`],
+      ['fa-clock', 'Estoy verificando tu pago', `${hola}, ya recibí tu comprobante del pedido ${p.codigo}. Lo estoy verificando y en unos minutos te entrego tu pedido.`],
+      ['fa-circle-check', 'Pedido entregado', `${hola}, ya te entregué tu pedido ${p.codigo} (${servicio}). Revísalo en tu correo o en "Mis pedidos". ¿Todo bien con tu cuenta?`]
+    ];
+    if (p.vence) {
+      const f = fechaCorta(p.vence);
+      lista.push(['fa-bell', 'Recordatorio de vencimiento', `${hola}, te saluda ${tienda}. Tu ${servicio} vence el ${f}. ¿Deseas renovarlo? Puedes hacerlo aquí: ${enlaceRenovar(p.items)}`]);
+    }
+    lista.push(['fa-life-ring', '¿Tienes algún problema?', `${hola}, ¿tienes algún problema con tu ${servicio}? Cuéntame qué pasa y te ayudo enseguida.`]);
+    return lista;
+  }
+  function botonesWa(p) {
+    const wa = whatsappCliente(p.whatsapp);
+    if (!wa) return '<p class="texto-suave">Este pedido no tiene WhatsApp del cliente.</p>';
+    return `<div class="wa-rapidos">${plantillasWa(p).map(([ic, t, msg]) => `<a class="btn btn-secundario btn-chico" target="_blank" rel="noopener" href="https://wa.me/${wa}?text=${encodeURIComponent(msg)}"><i class="fa-solid ${ic}"></i> ${esc(t)}</a>`).join('')}<a class="btn btn-secundario btn-chico btn-wa" target="_blank" rel="noopener" href="https://wa.me/${wa}"><i class="fa-brands fa-whatsapp"></i> Chat en blanco</a></div>`;
   }
 
   const V = { datos: null, cargando: false, error: '', filtro: 'pronto', busqueda: '', enviando: {} };
@@ -910,7 +941,8 @@
     const cuenta = (e) => PD.pendientes.filter((p) => p.estado === e).length;
     const chips = [['en_revision', 'Por revisar', cuenta('en_revision')], ['aprobado', 'Por entregar', cuenta('aprobado')], ['entregado', 'Entregados'], ['rechazado', 'Rechazados']];
     const cab = `<div class="vista-cabecera"><div><h1 class="vista-titulo">Pedidos</h1>
-      <p class="vista-sub">Se actualizan en vivo. Lo que hagas aquí también se refleja en Telegram, y al revés.</p></div></div>
+      <p class="vista-sub">Se actualizan en vivo. Lo que hagas aquí también se refleja en Telegram, y al revés.</p></div>
+      <button type="button" class="btn btn-primario btn-chico" data-accion="nueva-venta"><i class="fa-solid fa-plus"></i> Registrar venta</button></div>
       <div class="chips">${chips.map(([id, t, n]) => `<button type="button" class="chip ${PD.filtro === id ? 'activo' : ''}" data-accion="filtro-pedidos" data-f="${id}">${t}${n ? ` <b class="chip-num">${n}</b>` : ''}</button>`).join('')}</div>`;
     if (PD.error) return `${cab}<div class="error-hoja">${esc(PD.error)}</div>`;
     if (!PD.listo) return `${cab}<div class="vacio"><i class="fa-solid fa-spinner fa-spin"></i>Cargando pedidos...</div>`;
@@ -1048,12 +1080,15 @@
             <span class="texto-suave">${esc(P.email || '')}</span>
             <div class="sus-acciones">
               ${P.email ? `<a class="btn btn-secundario btn-chico" href="mailto:${esc(P.email)}"><i class="fa-solid fa-envelope"></i> Correo</a>` : ''}
-              ${wa ? `<a class="btn btn-secundario btn-chico btn-wa" target="_blank" rel="noopener" href="https://wa.me/${wa}?text=${encodeURIComponent(`Hola ${String(P.nombre || '').split(' ')[0]}, te escribo por tu pedido ${P.codigo} en Refills EC.`)}"><i class="fa-brands fa-whatsapp"></i> ${esc(P.whatsapp)}</a>` : ''}
             </div>
+            <span class="texto-suave"><i class="fa-brands fa-whatsapp"></i> ${esc(P.whatsapp || 'Sin WhatsApp')} · toca un mensaje para abrir su chat:</span>
+            ${botonesWa(P)}
           </div>
         </section>
+        ${P.alertaPrimera ? `<div class="aviso-primera"><i class="fa-solid fa-triangle-exclamation"></i><div><b>Revisa la primera recarga</b><br>${esc(P.alertaPrimera)}. Si no corresponde, cóbrale la diferencia o rechaza el pedido.</div></div>` : ''}
         <section class="seccion-hoja"><h3>Productos</h3>
           ${(P.items || []).map((it) => `<div class="tarjeta-sub item-pedido"><div class="pedido-linea"><strong>${esc(nombreItem(it))}</strong><b>${dinero(it.subtotal)}</b></div>
+            ${it.primeraRecarga ? `<span class="etiqueta-primera"><i class="fa-solid fa-gift"></i> Marcó PRIMERA RECARGA · precio normal ${dinero((it.precioNormal || it.precioUnit) * (it.cantidad || 1))}</span>` : ''}
             ${(it.datos || []).map((d) => `<span class="dato-cliente">${esc(d.etiqueta)}: <b>${esc(d.valor)}</b> <button type="button" class="btn-icono mini" data-h="copiar" data-texto="${esc(d.valor)}" aria-label="Copiar"><i class="fa-regular fa-copy"></i></button></span>`).join('')}</div>`).join('')}
         </section>
         <section class="seccion-hoja"><h3>Comprobante</h3>
@@ -1438,6 +1473,7 @@
               <button type="button" class="btn btn-secundario btn-chico" data-accion="ordenar"><i class="fa-solid fa-sort"></i> Ordenar</button>
             </div>`}
       </div>
+      ${E.ordenando ? '' : avisoNovedades()}
       ${E.ordenando
         ? '<p class="nota"><i class="fa-solid fa-circle-info"></i> Usa las flechas para cambiar el orden en que aparecen en tu tienda y luego toca Guardar.</p><br>'
         : `<div class="buscador"><i class="fa-solid fa-magnifying-glass"></i><input class="entrada" type="search" placeholder="Buscar producto" value="${esc(E.busqueda)}" data-buscar aria-label="Buscar producto"></div>
@@ -1445,6 +1481,69 @@
       <div class="lista" id="lista-productos">${listaProductos()}</div>
       ${E.ordenando ? '' : '<button type="button" class="fab" data-accion="nuevo-producto"><i class="fa-solid fa-plus"></i> Nuevo producto</button>'}`;
   };
+
+  /* ---------- Novedades del archivo catalogo.js ---------- */
+  // Productos que Claude agregó o cambió en catalogo.js (tienen "actualizacion") y que
+  // todavía no están, o están más viejos, en tu panel.
+  function novedadesDelArchivo() {
+    const lista = [];
+    (CAT_ARCHIVO.servicios || []).forEach((a) => {
+      if (!a || !a.actualizacion) return;
+      const actual = E.catalogo.servicios.find((s) => s.id === a.id);
+      if (!actual) lista.push({ tipo: 'nuevo', a });
+      else if (String(a.actualizacion) > String(actual.actualizacion || '')) lista.push({ tipo: 'cambio', a });
+    });
+    return lista;
+  }
+  function avisoNovedades() {
+    const n = novedadesDelArchivo();
+    if (!n.length) return '';
+    return `<div class="aviso-novedades"><i class="fa-solid fa-wand-magic-sparkles"></i>
+      <div><b>${n.length} ${n.length === 1 ? 'producto nuevo o actualizado' : 'productos nuevos o actualizados'}</b>
+      <small>${n.map((x) => esc(x.a.nombre)).join(', ')}</small></div>
+      <button type="button" class="btn btn-primario btn-chico" data-accion="traer-novedades">Traer novedades</button></div>`;
+  }
+  async function traerNovedades() {
+    const n = novedadesDelArchivo();
+    if (!n.length) { aviso('Ya tienes todo al día.'); return; }
+    const nuevos = n.filter((x) => x.tipo === 'nuevo').map((x) => x.a.nombre);
+    const cambios = n.filter((x) => x.tipo === 'cambio').map((x) => x.a.nombre);
+    const texto = [
+      nuevos.length ? `Se agregarán: ${nuevos.join(', ')}.` : '',
+      cambios.length ? `Se actualizarán (precios, imagen y descripción; se conservan tus costos y si están visibles): ${cambios.join(', ')}.` : '',
+      'Los productos de ejemplo quedan ocultos hasta que les pongas tus precios. ¿Continuar?'
+    ].filter(Boolean).join('\n\n');
+    if (!confirm(texto)) return;
+    const respaldo = clonar(E.catalogo);
+    try {
+      n.forEach(({ tipo, a }) => {
+        const nuevo = clonar(a);
+        if (!E.catalogo.categorias.some((c) => c.id === nuevo.categoria)) {
+          const cat = (CAT_ARCHIVO.categorias || []).find((c) => c.id === nuevo.categoria);
+          if (cat) E.catalogo.categorias.push(clonar(cat));
+        }
+        if (tipo === 'nuevo') {
+          nuevo.activo = !nuevo.ejemplo;
+          E.catalogo.servicios.push(nuevo);
+        } else {
+          const i = E.catalogo.servicios.findIndex((s) => s.id === a.id);
+          const viejo = E.catalogo.servicios[i];
+          nuevo.activo = viejo.activo !== false;
+          nuevo.planes = (nuevo.planes || []).map((p) => {
+            const antes = (viejo.planes || []).find((x) => x.id === p.id);
+            return antes && typeof antes.costo === 'number' ? Object.assign({}, p, { costo: antes.costo }) : p;
+          });
+          E.catalogo.servicios[i] = nuevo;
+        }
+      });
+      await guardarDoc('catalogo', E.catalogo);
+      aviso('Listo: tus novedades ya están en la tienda.');
+    } catch (e) {
+      E.catalogo = respaldo;
+      if (e && e.message !== 'cancelado') errorGuardar(e);
+    }
+    irA(E.vista, true);
+  }
 
   async function cambiarVisible(id, visible, input) {
     const respaldo = clonar(E.catalogo);
@@ -1739,6 +1838,7 @@
 
   /* ---------------- Acciones de las vistas ---------------- */
   const ACCIONES = {
+    'nueva-venta': () => abrirVenta(),
     filtro: (b) => { E.filtro = b.dataset.cat; pintar(); },
     'ir-categorias': () => irA('categorias'),
     ir: (b) => irA(b.dataset.a),
@@ -1775,6 +1875,7 @@
     'bajar-cat': (b) => { if (mover(E.borrador.categorias, b.dataset.id, 1)) { marcarSucio(); pintar(); } },
     'abrir-producto': (b) => abrirProducto(b.dataset.id),
     'nuevo-producto': () => abrirProducto(null),
+    'traer-novedades': () => traerNovedades(),
     'abrir-categoria': (b) => abrirCategoria(b.dataset.id),
     'nueva-categoria': () => abrirCategoria(null),
     'agregar-regla': () => {
@@ -1874,7 +1975,7 @@
       planes: [{ id: '', nombre: '1 pantalla', precio: '', dias: '30' }], campos: []
     };
     P.portada = Object.assign({ de: '#2a1240', a: '#5b1640', icono: 'fa-solid fa-bag-shopping' }, P.portada || {});
-    P.planes = (P.planes || []).map((p) => Object.assign({}, p, { precio: textoPrecio(p.precio), costo: textoPrecio(p.costo), dias: p.dias ? String(p.dias) : '' }));
+    P.planes = (P.planes || []).map((p) => Object.assign({}, p, { precio: textoPrecio(p.precio), precioPrimera: p.precioPrimera ? textoPrecio(p.precioPrimera) : '', costo: textoPrecio(p.costo), dias: p.dias ? String(p.dias) : '' }));
     P.campos = (P.campos || []).map((c) => Object.assign({}, c, { soloNumeros: !!(c.patron && /\[0-9\]|\\d/.test(c.patron)) }));
     let modo = P.imagen ? (IMAGENES.includes(P.imagen) ? 'archivo' : 'enlace') : 'auto';
     let error = '';
@@ -1909,6 +2010,9 @@
           <label class="campo"><span>Plan</span><input data-plan="${i}" data-prop="nombre" value="${esc(p.nombre)}" placeholder="Ej.: 1 pantalla" maxlength="30"></label>
           <label class="campo"><span>Precio</span><div class="prefijo"><b>$</b><input data-plan="${i}" data-prop="precio" value="${esc(p.precio)}" inputmode="decimal" placeholder="3,50"></div></label>
           <label class="campo"><span>Días</span><input data-plan="${i}" data-prop="dias" value="${esc(p.dias)}" inputmode="numeric" placeholder="30"></label>
+        </div>
+        <div class="rejilla-costo">
+          <label class="campo"><span>Precio 1.ª recarga <small>(opcional)</small></span><div class="prefijo"><b>$</b><input data-plan="${i}" data-prop="precioPrimera" value="${esc(p.precioPrimera || '')}" inputmode="decimal" placeholder="Vacío = sin promo"></div></label>
         </div>
         <div class="rejilla-costo">
           <label class="campo"><span>Te cuesta <small>(proveedor)</small></span><div class="prefijo"><b>$</b><input data-plan="${i}" data-prop="costo" value="${esc(p.costo || '')}" inputmode="decimal" placeholder="1,00"></div></label>
@@ -2059,6 +2163,11 @@
         if (isNaN(precio) || precio <= 0 || precio > 9999) return `${n} (${p.nombre}) necesita un precio válido, por ejemplo 3,50.`;
         if (String(p.dias || '').trim() && !/^\d{1,4}$/.test(String(p.dias).trim())) return `Los días de ${p.nombre} deben ser un número, por ejemplo 30.`;
         if (String(p.costo || '').trim() && isNaN(leerPrecio(p.costo))) return `Revisa lo que te cuesta ${p.nombre} (ejemplo: 1,00).`;
+        if (String(p.precioPrimera || '').trim()) {
+          const pp = leerPrecio(p.precioPrimera);
+          if (isNaN(pp) || pp <= 0) return `Revisa el precio de primera recarga de ${p.nombre} (ejemplo: 0,90).`;
+          if (pp >= precio) return `El precio de primera recarga de ${p.nombre} debe ser menor al precio normal.`;
+        }
       }
       for (const c of P.campos) if (!String(c.etiqueta || '').trim()) return 'Cada dato que pides al cliente necesita un nombre, o quítalo.';
       return '';
@@ -2076,6 +2185,8 @@
         if (p.combo) salida.combo = true; else delete salida.combo;
         const costo = leerPrecio(p.costo);
         if (String(p.costo || '').trim() && !isNaN(costo)) salida.costo = costo; else delete salida.costo;
+        const pp = leerPrecio(p.precioPrimera);
+        if (String(p.precioPrimera || '').trim() && !isNaN(pp) && pp > 0) salida.precioPrimera = pp; else delete salida.precioPrimera;
         return salida;
       });
       const usadosCampo = [];
@@ -2184,6 +2295,89 @@
           try { await guardarDoc('catalogo', E.catalogo); cerrarHoja(true); pintar(); aviso('Categoría eliminada.'); }
           catch (e) { E.catalogo = respaldo; errorGuardar(e); }
         }
+      }
+    });
+  }
+
+
+  /* ---------------- Registrar venta (WhatsApp / en persona) ---------------- */
+  function abrirVenta() {
+    if (hoja) return;
+    const METODOS = ['Efectivo', 'Transferencia', 'Binance', 'Deuna', 'Otro'];
+    const opciones = [];
+    E.catalogo.servicios.filter((s) => s.activo !== false).forEach((s) => (s.planes || []).filter((p) => !p.combo && Number.isFinite(Number(p.precio))).forEach((p) => opciones.push({ clave: `${s.id}|${p.id}`, s, p })));
+    const S = { clave: opciones[0] ? opciones[0].clave : 'libre', libre: '', cantidad: '1', total: '', costo: '', nombre: '', whatsapp: '', metodo: 'Efectivo', nota: '', totalTocado: false, costoTocado: false };
+    let error = '';
+    let enviando = false;
+    const actual = () => opciones.find((o) => o.clave === S.clave) || null;
+    const recalcular = () => {
+      const o = actual();
+      const n = Math.max(1, parseInt(S.cantidad, 10) || 1);
+      if (o && !S.totalTocado) S.total = textoPrecio(redondear(Number(o.p.precio) * n));
+      if (o && !S.costoTocado) S.costo = typeof o.p.costo === 'number' ? textoPrecio(redondear(o.p.costo * n)) : '';
+      if (!o && !S.totalTocado) S.total = '';
+    };
+    recalcular();
+    const ganancia = () => {
+      const t = leerPrecio(S.total); const c = leerPrecio(S.costo);
+      return !isNaN(t) && !isNaN(c) ? `Ganancia: <b class="${t - c < 0 ? 'perdida' : ''}">${dinero(redondear(t - c))}</b>` : '';
+    };
+    const grupos = () => {
+      const porServicio = {};
+      opciones.forEach((o) => { (porServicio[o.s.id] = porServicio[o.s.id] || { s: o.s, items: [] }).items.push(o); });
+      return Object.values(porServicio).map((g) => `<optgroup label="${esc(g.s.nombre)}">${g.items.map((o) => `<option value="${esc(o.clave)}" ${S.clave === o.clave ? 'selected' : ''}>${esc(o.p.nombre)} · ${dinero(o.p.precio)}</option>`).join('')}</optgroup>`).join('');
+    };
+    abrirHoja({
+      titulo: 'Registrar venta',
+      sucio: false,
+      cuerpo: () => `
+        ${error ? `<div class="error-hoja">${esc(error)}</div>` : ''}
+        <p class="texto-suave">Para ventas que hiciste por WhatsApp o en persona. Queda como entregada y entra en tus Ventas, Clientes y recordatorios.</p>
+        <label class="campo"><span>Producto vendido</span>
+          <select data-v="clave">${grupos()}<option value="libre" ${S.clave === 'libre' ? 'selected' : ''}>✏️ Otro (que no está en la tienda)</option></select></label>
+        ${S.clave === 'libre' ? `<label class="campo"><span>Nombre del producto</span><input data-v="libre" value="${esc(S.libre)}" maxlength="80" placeholder="Ej.: Netflix 1 pantalla"></label>` : ''}
+        <div class="fila-campos">
+          <label class="campo"><span>Cantidad</span><input data-v="cantidad" value="${esc(S.cantidad)}" inputmode="numeric" maxlength="2"></label>
+          <label class="campo"><span>Cobré (total $)</span><input data-v="total" value="${esc(S.total)}" inputmode="decimal" placeholder="0,00"></label>
+          <label class="campo"><span>Me costó ($)</span><input data-v="costo" value="${esc(S.costo)}" inputmode="decimal" placeholder="opcional"></label>
+        </div>
+        <p class="texto-suave" id="venta-ganancia">${ganancia()}</p>
+        <label class="campo"><span>Nombre del cliente</span><input data-v="nombre" value="${esc(S.nombre)}" maxlength="80" autocomplete="off" placeholder="Opcional"></label>
+        <label class="campo"><span><i class="fa-brands fa-whatsapp"></i> WhatsApp del cliente</span><input data-v="whatsapp" value="${esc(S.whatsapp)}" inputmode="tel" maxlength="20" placeholder="0991234567"></label>
+        <label class="campo"><span>Método de pago</span><select data-v="metodo">${METODOS.map((m) => `<option ${S.metodo === m ? 'selected' : ''}>${m}</option>`).join('')}</select></label>
+        <label class="campo"><span>Nota / datos entregados <small>(opcional)</small></span><textarea data-v="nota" rows="2" maxlength="500" placeholder="Ej.: correo y clave que le diste, perfil 2">${esc(S.nota)}</textarea></label>`,
+      pie: () => `<button type="button" class="btn btn-primario" data-h="registrar" ${enviando ? 'disabled' : ''}><i class="fa-solid fa-check"></i> Registrar venta</button>`,
+      entrada: (el) => {
+        const k = el.dataset.v;
+        if (!k) return;
+        S[k] = el.value;
+        if (k === 'clave') { S.totalTocado = false; S.costoTocado = false; recalcular(); pintarHoja(); return; }
+        if (k === 'cantidad') { recalcular(); const t = $('#hoja [data-v="total"]'); const c = $('#hoja [data-v="costo"]'); if (t) t.value = S.total; if (c) c.value = S.costo; }
+        if (k === 'total') S.totalTocado = true;
+        if (k === 'costo') S.costoTocado = true;
+        const g = $('#venta-ganancia'); if (g) g.innerHTML = ganancia();
+      },
+      accion: async (nombre, b) => {
+        if (nombre !== 'registrar' || enviando) return;
+        const o = actual();
+        const total = leerPrecio(S.total);
+        if (!o && !S.libre.trim()) { error = 'Escribe el nombre del producto.'; pintarHoja(); return; }
+        if (isNaN(total) || total <= 0) { error = 'Escribe cuánto cobraste (mayor a 0).'; pintarHoja(); return; }
+        const wa = String(S.whatsapp || '').replace(/\D/g, '');
+        if (wa && !(/^09\d{8}$/.test(wa) || /^\d{10,15}$/.test(wa))) { error = 'Revisa el WhatsApp del cliente (ej.: 0991234567).'; pintarHoja(); return; }
+        error = ''; enviando = true; pintarHoja();
+        try {
+          const c = leerPrecio(S.costo);
+          const r = await llamarPuente('/admin/venta', {
+            servicioId: o ? o.s.id : '', planId: o ? o.p.id : '', nombreProducto: o ? '' : S.libre.trim(),
+            cantidad: S.cantidad, total, costo: isNaN(c) ? '' : c, nombre: S.nombre.trim(), whatsapp: wa ? (/^09/.test(wa) ? `593${wa.slice(1)}` : wa) : '',
+            metodo: S.metodo, nota: S.nota.trim()
+          });
+          V.datos = null; ES.datos = null; PD.cerrados.entregado = null;
+          cerrarHoja(true);
+          aviso(`Venta ${r.codigo} registrada${r.ganancia !== null ? ` · ganancia ${dinero(r.ganancia)}` : ''}.`);
+          if (['pedidos', 'clientes', 'ventas'].includes(E.vista)) pintar();
+        } catch (e) { error = e.message; enviando = false; pintarHoja(); }
       }
     });
   }

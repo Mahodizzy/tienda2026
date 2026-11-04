@@ -1,6 +1,6 @@
 /* Refills EC Panel — permite instalar la app y abrirla aunque falle la conexión.
    Siempre intenta traer la versión más nueva; si no hay internet, usa la guardada. */
-const CACHE = 'refills-admin-v4';
+const CACHE = 'refills-admin-v6';
 const BASE = ['./', 'index.html', 'admin.css', 'admin.js', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-64.png',
   '../shop/static/config.js', '../shop/static/catalogo.js', '../img/logoo.png'];

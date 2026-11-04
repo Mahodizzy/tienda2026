@@ -36,6 +36,7 @@ document.addEventListener('DOMContentLoaded', () => window.RF.listo.then(() => {
         <h3 class="product-name">${esc(s.nombre)}</h3>
         <p class="rf-card-planes">${varios ? `${s.planes.length} planes` : esc(s.planes[0].nombre)}</p>
         <p class="product-price">${varios ? '<span class="rf-desde">desde</span> ' : ''}${dinero(C.precioDesde(s))}</p>
+        ${C.servicioTienePrimera(s) ? `<p class="rf-card-primera"><i class="fa-solid fa-gift"></i> 1.ª recarga desde ${dinero(Math.min(...s.planes.filter(C.planTienePrimera).map((p) => p.precioPrimera)))}</p>` : ''}
       </div>
       <span class="buy-link" aria-hidden="true"><i class="fa-solid fa-plus"></i></span>
     </article>`;
@@ -269,6 +270,10 @@ document.addEventListener('DOMContentLoaded', () => window.RF.listo.then(() => {
             <div class="rf-planes-lista" data-ficha-planes></div>
           </fieldset>
           <div class="rf-campos" data-ficha-campos></div>
+          <label class="rf-primera" data-ficha-primera hidden>
+            <input type="checkbox" data-ficha-primera-check>
+            <span><b>Es mi primera recarga con Refills EC</b><small data-ficha-primera-texto></small></span>
+          </label>
           <div class="rf-ficha-cantidad">
             <span>Cantidad</span>
             <div class="quantity-controls">
@@ -297,8 +302,15 @@ document.addEventListener('DOMContentLoaded', () => window.RF.listo.then(() => {
       ? `<img src="${esc(src)}" class="rf-ficha-difuso" alt="" aria-hidden="true"><img src="${esc(src)}" class="rf-ficha-img" alt="${esc(s.nombre)}">`
       : V.portadaHTML(s, plan);
     $('[data-ficha-cantidad]', ficha).textContent = cantidad;
-    $('[data-ficha-total]', ficha).textContent = dinero(plan.precio * cantidad);
-    $$('.rf-plan', ficha).forEach((l) => l.classList.toggle('activo', l.dataset.plan === plan.id));
+    const conPromo = !!fichaEstado.primera && C.planTienePrimera(plan);
+    $('[data-ficha-total]', ficha).textContent = dinero((conPromo ? plan.precioPrimera : plan.precio) * cantidad);
+    $$('.rf-plan', ficha).forEach((l) => {
+      l.classList.toggle('activo', l.dataset.plan === plan.id);
+      const pl = C.planPorId(s, l.dataset.plan);
+      const caja = $('.rf-plan-precio', l);
+      if (pl && caja) caja.innerHTML = fichaEstado.primera && C.planTienePrimera(pl)
+        ? `<s>${dinero(pl.precio)}</s> <b>${dinero(pl.precioPrimera)}</b>` : dinero(pl.precio);
+    });
     const pista = $('[data-ficha-pista]', ficha);
     if (hayCombos && plan.combo && C.reglas[0]) {
       const r = C.reglas[0];
@@ -311,7 +323,7 @@ document.addEventListener('DOMContentLoaded', () => window.RF.listo.then(() => {
     const s = C.servicioPorId(id);
     if (!s) return;
     focoPrevio = document.activeElement;
-    fichaEstado = { s, plan: s.planes[0], cantidad: 1 };
+    fichaEstado = { s, plan: s.planes[0], cantidad: 1, primera: false };
     $('[data-ficha-titulo]', ficha).textContent = s.nombre;
     $('[data-ficha-desc]', ficha).textContent = s.descripcion || '';
     $('[data-ficha-planes]', ficha).innerHTML = s.planes.map((p, i) => `
@@ -327,6 +339,10 @@ document.addEventListener('DOMContentLoaded', () => window.RF.listo.then(() => {
         <input type="text" data-campo="${esc(c.id)}" placeholder="${esc(c.ejemplo || '')}" ${c.patron ? `data-patron="${esc(c.patron)}"` : ''} inputmode="${c.patron && /\[0-9\]/.test(c.patron) ? 'numeric' : 'text'}" autocomplete="off">
         <small class="rf-campo-error" data-error-campo="${esc(c.id)}"></small>
       </label>`).join('');
+    const cajaPrimera = $('[data-ficha-primera]', ficha);
+    cajaPrimera.hidden = !C.servicioTienePrimera(s);
+    $('[data-ficha-primera-check]', ficha).checked = false;
+    $('[data-ficha-primera-texto]', ficha).textContent = C.TEXTO_PRIMERA;
     pintarFicha();
     ficha.hidden = false;
     document.body.classList.add('rf-sin-scroll');
@@ -356,6 +372,11 @@ document.addEventListener('DOMContentLoaded', () => window.RF.listo.then(() => {
     if (e.target.closest('[data-ficha-agregar]')) agregarDesdeFicha();
   });
   ficha.addEventListener('change', (e) => {
+    if (e.target.matches('[data-ficha-primera-check]')) {
+      fichaEstado.primera = e.target.checked;
+      pintarFicha();
+      return;
+    }
     if (e.target.name === 'rf-plan') {
       fichaEstado.plan = C.planPorId(fichaEstado.s, e.target.value);
       pintarFicha();
@@ -383,9 +404,10 @@ document.addEventListener('DOMContentLoaded', () => window.RF.listo.then(() => {
       datos[input.dataset.campo] = valor;
     });
     if (!valido) return;
-    RF.carrito.agregarPlan(s.id, plan.id, cantidad, datos);
+    const conPromo = !!fichaEstado.primera && C.planTienePrimera(plan);
+    RF.carrito.agregarPlan(s.id, plan.id, cantidad, datos, conPromo);
     cerrarFicha();
-    avisoAgregado(`${s.nombre}: ${plan.nombre} agregado`);
+    avisoAgregado(`${s.nombre}: ${plan.nombre} agregado${conPromo ? ' (precio de primera recarga)' : ''}`);
   }
 
   function activarFiltro(id) {
@@ -431,6 +453,7 @@ document.addEventListener('DOMContentLoaded', () => window.RF.listo.then(() => {
       <div class="item-info">
         <p class="item-name">${esc(l.titulo)}</p>
         <p class="rf-linea-detalle">${esc(l.detalle)}</p>
+        ${l.primera ? '<p class="rf-linea-primera"><i class="fa-solid fa-gift"></i> Precio de primera recarga</p>' : ''}
         ${datos}
         <div class="quantity-controls">
           <button type="button" class="btn-qty" data-accion="menos" data-clave="${esc(l.clave)}" aria-label="Quitar uno">−</button>
@@ -440,7 +463,7 @@ document.addEventListener('DOMContentLoaded', () => window.RF.listo.then(() => {
       </div>
       <div class="rf-linea-lado">
         <p class="item-price">${dinero(l.subtotal)}</p>
-        ${l.ahorro > 0 ? `<s class="rf-linea-antes">${dinero(l.normalUnit * l.cantidad)}</s>` : ''}
+        ${l.ahorro > 0 || l.primera ? `<s class="rf-linea-antes">${dinero(l.normalUnit * l.cantidad)}</s>` : ''}
         <button type="button" class="btn-remove-item" data-accion="quitar" data-clave="${esc(l.clave)}" aria-label="Quitar ${esc(l.titulo)}"><i class="fa-solid fa-trash-can"></i></button>
       </div>
     </div>`;

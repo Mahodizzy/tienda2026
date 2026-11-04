@@ -17,6 +17,10 @@
                      id, nombre, precio, dias (duración, opcional),
                      combo: true  → ese plan puede entrar en los combos
      campos      → datos que el cliente debe escribir (ej. ID de jugador)
+     precioPrimera (en un plan) → precio especial para la primera recarga; el cliente
+                   marca una casilla para recibirlo. Sin casilla, paga "precio".
+     actualizacion → fecha (AAAA-MM-DD). El botón "Traer novedades" del panel copia
+                   los productos nuevos o con fecha más reciente que la del panel.
      ejemplo     → true = producto de muestra (se oculta con
                    mostrarProductosDeEjemplo: false en config.js)
    ============================================================= */
@@ -165,21 +169,48 @@ window.REFILLS_CATALOGO = {
       ]
     },
     {
-      id: "playstation", nombre: "PlayStation Store", categoria: "tarjetas", entrega: "codigo", ejemplo: true,
-      imagen: "", portada: { de: "#0b2a6b", a: "#1a0b3d", icono: "fa-solid fa-gamepad" },
-      descripcion: "Código digital para tu cuenta de PlayStation. Llega a tu pedido.",
+      id: "playstation", nombre: "PlayStation USA", categoria: "tarjetas", entrega: "codigo", actualizacion: "2026-10-12",
+      imagen: "img/playstation.jpg", portada: { de: "#0b2a6b", a: "#1a0b3d", icono: "fa-solid fa-gamepad" },
+      descripcion: "Saldo PlayStation Store USA para juegos y complementos. Tarjeta digital: verifica que tu cuenta PSN sea de USA. El código llega a tu pedido.",
       planes: [
-        { id: "10", nombre: "Tarjeta $10", precio: 11.50 },
-        { id: "20", nombre: "Tarjeta $20", precio: 22.50 }
+        { id: "10",  nombre: "PlayStation $10",  precio: 12.00 },
+        { id: "25",  nombre: "PlayStation $25",  precio: 28.00 },
+        { id: "50",  nombre: "PlayStation $50",  precio: 55.00 },
+        { id: "100", nombre: "PlayStation $100", precio: 110.00 }
       ]
     },
     {
-      id: "xbox", nombre: "Xbox", categoria: "tarjetas", entrega: "codigo", ejemplo: true,
-      imagen: "", portada: { de: "#0d3b12", a: "#081a0b", icono: "fa-solid fa-gamepad" },
+      id: "xbox", nombre: "Xbox", categoria: "tarjetas", entrega: "codigo", actualizacion: "2026-10-12",
+      imagen: "img/xbox.jpg", portada: { de: "#0d3b12", a: "#081a0b", icono: "fa-solid fa-gamepad" },
       descripcion: "Código digital para tu cuenta de Xbox. Llega a tu pedido.",
       planes: [
-        { id: "10", nombre: "Tarjeta $10", precio: 11.50 },
-        { id: "25", nombre: "Tarjeta $25", precio: 28.00 }
+        { id: "10",  nombre: "Tarjeta $10",  precio: 12.00 },
+        { id: "15",  nombre: "Tarjeta $15",  precio: 17.00 },
+        { id: "25",  nombre: "Tarjeta $25",  precio: 28.00 },
+        { id: "100", nombre: "Tarjeta $100", precio: 105.00 }
+      ]
+    },
+    {
+      id: "roblox", nombre: "Roblox", categoria: "tarjetas", entrega: "codigo", actualizacion: "2026-10-12",
+      imagen: "img/roblox.jpg", portada: { de: "#2a2a36", a: "#0b0b10", icono: "fa-solid fa-cube" },
+      descripcion: "Tarjeta de regalo de Roblox para canjear por Robux. El código llega a tu pedido.",
+      planes: [
+        { id: "10",  nombre: "Tarjeta $10 · 1000 Robux",   precio: 12.00 },
+        { id: "15",  nombre: "Tarjeta $15 · 1500 Robux",   precio: 17.00 },
+        { id: "20",  nombre: "Tarjeta $20 · 2000 Robux",   precio: 23.00 },
+        { id: "25",  nombre: "Tarjeta $25 · 2500 Robux",   precio: 28.00 },
+        { id: "50",  nombre: "Tarjeta $50 · 5250 Robux",   precio: 55.00 },
+        { id: "100", nombre: "Tarjeta $100 · 11000 Robux", precio: 110.00 }
+      ]
+    },
+    {
+      id: "nintendo", nombre: "Nintendo eShop USA", categoria: "tarjetas", entrega: "codigo", actualizacion: "2026-10-12",
+      imagen: "img/nintendo.jpg", portada: { de: "#8a1c2b", a: "#3a0a12", icono: "fa-solid fa-gamepad" },
+      descripcion: "Tarjeta digital Nintendo eShop USA. Comprueba la región de tu cuenta Nintendo antes de comprar. El código llega a tu pedido.",
+      planes: [
+        { id: "10", nombre: "Nintendo $10", precio: 12.00 },
+        { id: "20", nombre: "Nintendo $20", precio: 23.00 },
+        { id: "50", nombre: "Nintendo $50", precio: 55.00 }
       ]
     },
     {
@@ -194,30 +225,54 @@ window.REFILLS_CATALOGO = {
 
     /* ============ RECARGAS DE JUEGOS (EJEMPLOS: cambia precios) ============ */
     {
-      id: "freefire", nombre: "Free Fire", categoria: "juegos", entrega: "recarga", ejemplo: true,
-      imagen: "", portada: { de: "#5a1d00", a: "#2a0a12", icono: "fa-solid fa-gem" },
+      id: "freefire", nombre: "Free Fire", categoria: "juegos", entrega: "recarga", actualizacion: "2026-10-12",
+      imagen: "img/freefire.jpg", portada: { de: "#5a1d00", a: "#2a0a12", icono: "fa-solid fa-gem" },
       descripcion: "Diamantes directo a tu cuenta. Solo necesitas tu ID de jugador.",
       campos: [
         { id: "idJugador", etiqueta: "ID de jugador", ejemplo: "Ej. 123456789", patron: "^[0-9]{5,15}$", ayuda: "Solo números" }
       ],
       planes: [
-        { id: "100",  nombre: "100 diamantes",  precio: 1.20 },
-        { id: "310",  nombre: "310 diamantes",  precio: 3.50 },
-        { id: "520",  nombre: "520 diamantes",  precio: 5.50 },
-        { id: "1060", nombre: "1060 diamantes", precio: 10.50 }
+        { id: "100",  nombre: "100 diamantes",  precio: 1.25,  precioPrimera: 0.90 },
+        { id: "310",  nombre: "310 diamantes",  precio: 3.50,  precioPrimera: 2.90 },
+        { id: "520",  nombre: "520 diamantes",  precio: 5.50,  precioPrimera: 4.50 },
+        { id: "1060", nombre: "1060 diamantes", precio: 11.00, precioPrimera: 8.50 },
+        { id: "2180", nombre: "2180 diamantes", precio: 21.00, precioPrimera: 17.00 },
+        { id: "5600", nombre: "5600 diamantes", precio: 51.00, precioPrimera: 40.00 }
       ]
     },
     {
-      id: "pubg", nombre: "PUBG Mobile", categoria: "juegos", entrega: "recarga", ejemplo: true,
-      imagen: "", portada: { de: "#4a3a06", a: "#1c1606", icono: "fa-solid fa-crosshairs" },
+      id: "pubg", nombre: "PUBG Mobile (Global)", categoria: "juegos", entrega: "recarga", actualizacion: "2026-10-13",
+      imagen: "img/pubg.jpg", portada: { de: "#4a3a06", a: "#1c1606", icono: "fa-solid fa-crosshairs" },
       descripcion: "UC directo a tu cuenta. Solo necesitas tu ID de jugador.",
       campos: [
         { id: "idJugador", etiqueta: "ID de jugador", ejemplo: "Ej. 5123456789", patron: "^[0-9]{5,15}$", ayuda: "Solo números" }
       ],
       planes: [
-        { id: "60",  nombre: "60 UC",  precio: 1.20 },
-        { id: "325", nombre: "325 UC", precio: 5.50 },
-        { id: "660", nombre: "660 UC", precio: 10.50 }
+        { id: "60",   nombre: "60 UC",         precio: 1.50 },
+        { id: "300",  nombre: "300 + 25 UC",   precio: 6.00 },
+        { id: "600",  nombre: "600 + 60 UC",   precio: 11.25 },
+        { id: "1500", nombre: "1500 + 300 UC", precio: 27.25 },
+        { id: "3000", nombre: "3000 + 850 UC", precio: 54.25 },
+        { id: "6000", nombre: "6000 + 2100 UC", precio: 108.50 }
+      ]
+    },
+    {
+      id: "codm", nombre: "Call of Duty Mobile", categoria: "juegos", entrega: "recarga", ejemplo: true, actualizacion: "2026-10-14",
+      imagen: "img/codm.jpg", portada: { de: "#2a2a06", a: "#0c0c05", icono: "fa-solid fa-crosshairs" },
+      descripcion: "CP directo a tu cuenta. Solo necesitas tu UID de jugador.",
+      campos: [
+        { id: "idJugador", etiqueta: "UID de jugador", ejemplo: "Ej. 6742000000000000000", patron: "^[0-9]{5,25}$", ayuda: "Solo números" }
+      ],
+      planes: [
+        { id: "88",    nombre: "88 CP",                      precio: 1.40 },
+        { id: "160",   nombre: "160 CP",                     precio: 5.00,   precioPrimera: 1.50 },
+        { id: "460",   nombre: "460 CP",                     precio: 8.00,   precioPrimera: 4.50 },
+        { id: "pase",  nombre: "Pase de batalla",            precio: 10.00 },
+        { id: "960",   nombre: "960 CP",                     precio: 15.00,  precioPrimera: 9.00 },
+        { id: "2600",  nombre: "2600 CP",                    precio: 35.00,  precioPrimera: 20.00 },
+        { id: "pase-paquete", nombre: "Paquete de Pase de Batalla", precio: 35.00 },
+        { id: "5400",  nombre: "5400 CP",                    precio: 60.00,  precioPrimera: 39.00 },
+        { id: "10800", nombre: "10800 CP (8000 + 2800)",     precio: 120.00 }
       ]
     },
     {

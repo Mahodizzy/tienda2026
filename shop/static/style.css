@@ -2124,3 +2124,33 @@ body.rf-sin-scroll { overflow: hidden; }
 .rf-pie-enlaces a, .rf-nota a, .rf-pie-pedido a { color: var(--text-secondary); text-decoration: underline; text-underline-offset: 3px; }
 .rf-pie-enlaces a:hover, .rf-nota a:hover { color: #fff; }
 .rf-pie-pedido { margin-top: .5rem; }
+
+
+/* ---------- Precio de primera recarga ---------- */
+.rf-primera {
+    display: flex; gap: .7rem; align-items: flex-start; margin: .9rem 0 .2rem; padding: .85rem .95rem;
+    border-radius: 14px; cursor: pointer; text-align: left;
+    background: linear-gradient(135deg, rgba(192, 132, 252, .13), rgba(236, 72, 153, .12));
+    border: 1px solid rgba(236, 72, 153, .38);
+}
+.rf-primera[hidden] { display: none; }
+.rf-primera input { width: 1.3rem; height: 1.3rem; margin-top: .1rem; flex-shrink: 0; accent-color: #ec4899; cursor: pointer; }
+.rf-primera b { display: block; font-size: .95rem; color: var(--text-primary, #fff); }
+.rf-primera small { display: block; margin-top: .25rem; font-size: .78rem; line-height: 1.4; color: var(--text-secondary, #b4b4c0); }
+.rf-primera:focus-within { box-shadow: 0 0 0 2px rgba(236, 72, 153, .55); }
+.rf-plan-precio s { opacity: .55; font-weight: 400; margin-right: .25rem; }
+.rf-plan-precio b { color: #f9a8d4; }
+.rf-card-primera { margin: .35rem 0 0; font-size: .74rem; font-weight: 600; color: #f9a8d4; }
+.rf-card-primera i { margin-right: .25rem; }
+.rf-linea-primera { margin: .15rem 0; font-size: .74rem; font-weight: 600; color: #f9a8d4; }
+.rf-linea-primera i { margin-right: .25rem; }
+.rf-nota-primera { margin: .7rem 0 0; font-size: .78rem; line-height: 1.45; color: var(--text-secondary); }
+.rf-nota-primera i { margin-right: .3rem; color: #f9a8d4; }
+.rf-resumen-primera { color: #f9a8d4; }
+.rf-plan.activo .rf-plan-precio s { color: var(--text-secondary); -webkit-text-fill-color: var(--text-secondary); opacity: .75; }
+.rf-plan.activo .rf-plan-precio b { color: #f9a8d4; -webkit-text-fill-color: #f9a8d4; }
+
+/* WhatsApp obligatorio en el pago */
+.rf-req { color: var(--rf-rojo, #f87171); }
+.rf-campo > span small { font-weight: 400; opacity: .7; }
+.rf-error-campo { color: var(--rf-rojo, #f87171); font-size: .8rem; }

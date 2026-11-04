@@ -78,8 +78,9 @@
                     </div>
                 </div>
                 <label class="rf-campo">
-                    <span>Tu WhatsApp (opcional, por si necesitamos escribirte)</span>
-                    <input type="tel" id="rf-whatsapp" placeholder="Ej. 0991234567" inputmode="tel" autocomplete="tel" maxlength="20">
+                    <span>Tu número de WhatsApp <b class="rf-req">*</b> <small>(para entregarte y avisarte de tu pedido)</small></span>
+                    <input type="tel" id="rf-whatsapp" placeholder="Ej. 0991234567" inputmode="tel" autocomplete="tel" maxlength="20" required>
+                    <small class="rf-error-campo" id="rf-whatsapp-error" hidden>Escribe un número válido. Ej.: 0991234567</small>
                 </label>
                 <button type="button" class="btn-whatsapp-final rf-enviar" id="rf-enviar">
                     <i class="fa-solid fa-paper-plane"></i> Enviar pedido
